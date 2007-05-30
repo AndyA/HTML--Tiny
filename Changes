@@ -2,3 +2,9 @@ Revision history for HTML-Simple
 
 0.1 2007-05-30
     Initial release.
+
+0.2 2007-05-30
+    More examples.
+    More documentation.
+    json_encode now uses Scalar::Util::looks_like_number to test for
+    numberness rather than the crappy re-based match.

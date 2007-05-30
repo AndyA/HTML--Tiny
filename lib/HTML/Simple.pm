@@ -3,35 +3,29 @@ package HTML::Simple;
 use warnings;
 use strict;
 use Carp;
-use Scalar::Util qw(blessed);
+use Scalar::Util qw(blessed looks_like_number);
 
-use version; our $VERSION = qv( '0.1' );
+use version; our $VERSION = qv( '0.2' );
 
 BEGIN {
 
     # http://www.w3schools.com/tags/default.asp
     for my $tag (
-        qw(a abbr acronym address area b base bdo big blockquote body
+        qw( a abbr acronym address area b base bdo big blockquote body
         button caption cite code col colgroup dd del div dfn dl dt em
         fieldset form frame frameset h1 h2 h3 h4 h5 h6 head hr html i
         iframe img ins kbd label legend li link map meta noframes
         noscript object ol optgroup option p param pre q samp script
         select small span strong style sub sup table tbody td textarea
-        tfoot th thead title tr tt ul var)
+        tfoot th thead title tr tt ul var )
       ) {
         no strict 'refs';
-        *$tag = sub {
-            my $self = shift;
-            return $self->tag( $tag, @_ );
-        };
+        *$tag = sub { shift->tag( $tag, @_ ) };
     }
 
-    for my $tag ( qw(br input) ) {
+    for my $tag ( qw( br input ) ) {
         no strict 'refs';
-        *$tag = sub {
-            my $self = shift;
-            return $self->closed( $tag, @_ );
-        };
+        *$tag = sub { shift->closed( $tag, @_ ) };
     }
 }
 
@@ -71,8 +65,13 @@ sub _initialize {
 
 sub _str {
     my $obj = shift;
+    # Flatten array refs...
+    return join '', @$obj
+      if 'ARRAY' eq ref $obj;
+    # ...stringify objects...
     return $obj->as_string
       if blessed $obj && $obj->can( 'as_string' );
+    # ...default stringification
     return "$obj";
 }
 
@@ -117,7 +116,10 @@ sub _tag {
     croak "Attributes must be passed as hash references"
       if grep { 'HASH' ne ref $_ } @_;
 
+    # Merge attribute hashes
     my %attr = map { %$_ } @_;
+
+    # Generate markup
     return "<$name"
       . join( '',
         map { ' ' . $_ . '="' . $self->entity_encode( $attr{$_} ) . '"' }
@@ -138,8 +140,6 @@ sub tag {
             %attr = ( %attr, %$a );
         }
         else {
-            # Flatten array refs
-            $a = join '', @$a if 'ARRAY' eq ref $a;
             # Generate markup
             push @out,
               $self->_tag( 0, $name, \%attr )
@@ -151,15 +151,8 @@ sub tag {
     return wantarray ? @out : join '', @out;
 }
 
-sub open {
-    my $self = shift;
-    return $self->_tag( 0, @_ );
-}
-
-sub closed {
-    my $self = shift;
-    return $self->_tag( 1, @_ );
-}
+sub open   { shift->_tag( 0, @_ ) }
+sub closed { shift->_tag( 1, @_ ) }
 
 # Generate a closing (X)HTML tag
 sub close {
@@ -186,20 +179,18 @@ sub json_encode {
             return '['
               . join( ',', map { $self->json_encode( $_ ) } @$obj ) . ']';
         }
-        else {
-            $obj = _str( $obj );
-        }
     }
 
-    if ( $obj =~ /^-?\d+(?:[.]\d+)?$/ ) {
+    if ( looks_like_number $obj ) {
         return $obj;
     }
-    else {
-        $obj =~ s/\\/\\\\/g;
-        $obj =~ s/"/\\"/g;
-        $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
-        return qq{"$obj"};
-    }
+
+    $obj = _str( $obj );
+    $obj =~ s/\\/\\\\/g;
+    $obj =~ s/"/\\"/g;
+    $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
+
+    return qq{"$obj"};
 }
 
 1;
@@ -211,7 +202,7 @@ HTML::Simple - Simple HTML generation utilities
 
 =head1 VERSION
 
-This document describes HTML::Simple version 0.1
+This document describes HTML::Simple version 0.2
 
 =head1 SYNOPSIS
 
@@ -289,8 +280,8 @@ would print
 
     <p>Hello</p><p>World</p>
 
-notice that each argument is individually wrapped in the specied tag. To
-avoid this multiple arguments can be grouped in an anonymous array:
+notice that each argument is individually wrapped in the specified tag.
+To avoid this multiple arguments can be grouped in an anonymous array:
 
     print $h->tag('p', ['Hello', 'World']);
 
@@ -308,6 +299,8 @@ argument list:
 would print
 
     <p class="normal">Foo</p>
+
+Attribute values will be HTML entity encoded as necessary.
 
 Multiple hashes may be supplied in which case they will be merged:
 
@@ -367,6 +360,38 @@ anonymous array:
 would print
 
     <p><b>Foo</b><b>Bar</b></p>
+
+This behaviour is powerful but can take a little time to master. If
+you imagine '[' and ']' preventing the propagation of the 'tag
+individual items' behaviour you might be close to being able to
+visualise how it works.
+
+Here's an HTML table (using the tag-name convenience methods - see
+below) that demonstrates it in more detail:
+
+    print $h->table(
+        [
+            $h->tr(
+                [ $h->th( 'Name', 'Score', 'Position' ) ],
+                [ $h->td( 'Therese',  90, 1 ) ],
+                [ $h->td( 'Chrissie', 85, 2 ) ],
+                [ $h->td( 'Andy',     50, 3 ) ]
+            )
+        ]
+    );
+
+which would print the unformatted version of:
+
+    <table>
+        <tr><th>Name</th><th>Score</th><th>Position</th></tr>
+        <tr><td>Therese</td><td>90</td><td>1</td></tr>
+        <tr><td>Chrissie</td><td>85</td><td>2</td></tr>
+        <tr><td>Andy</td><td>50</td><td>3</td></tr>
+    </table>
+
+Note how you don't need a td() for every cell or a tr() for every row.
+Notice also how the square brackets around the rows prevent tr() from
+wrapping each individual cell.
 
 =item C<< open( $name, ... ) >>
 
@@ -448,6 +473,10 @@ fact they called C<< closed >>).
     print $h->br;   # prints <br />
     print $h->input({ name => 'field1' });
                     # prints <input name="field1" />
+
+There's no way to override this default behaviour. If you need finer
+control over whether the tag is open or closed call C<tag>, C<open>,
+C<close> and C<closed> directly.
 
 =back
 
