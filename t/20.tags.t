@@ -1,13 +1,14 @@
 use strict;
 use warnings;
 use HTML::Simple;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 ok my $h = HTML::Simple->new, 'Create succeeded';
 
 is $h->br, '<br />', 'br OK';
 is $h->input( { name => 'myfield', type => 'text' } ),
   '<input name="myfield" type="text" />', 'input OK';
+is $h->img( { src => 'pic.jpg' } ), '<img src="pic.jpg" />', 'img OK';
 is $h->p( 'hello, world' ), '<p>hello, world</p>', 'p OK';
 
 is $h->a( { href => 'http://hexten.net', title => 'Hexten' }, 'Hexten' ),

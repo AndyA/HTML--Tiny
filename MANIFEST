@@ -1,5 +1,7 @@
 Changes
+examples/js.pl
 examples/simple.pl
+examples/table.pl
 lib/HTML/Simple.pm
 Makefile.PL
 MANIFEST
