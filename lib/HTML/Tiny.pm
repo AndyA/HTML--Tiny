@@ -1,4 +1,4 @@
-package HTML::Simple;
+package HTML::Tiny;
 
 use warnings;
 use strict;
@@ -208,17 +208,17 @@ __END__
 
 =head1 NAME
 
-HTML::Simple - Simple HTML generation utilities
+HTML::Tiny - Tiny HTML generation utilities
 
 =head1 VERSION
 
-This document describes HTML::Simple version 0.4
+This document describes HTML::Tiny version 0.4
 
 =head1 SYNOPSIS
 
-    use HTML::Simple;
+    use HTML::Tiny;
 
-    my $h = HTML::Simple->new;
+    my $h = HTML::Tiny->new;
 
     # Generate a simple page
     print $h->html(
@@ -247,7 +247,7 @@ This document describes HTML::Simple version 0.4
 
 =head1 DESCRIPTION
 
-C<< HTML::Simple >> is a simple, dependency free module for
+C<< HTML::Tiny >> is a simple, dependency free module for
 generating HTML (and XML). It concentrates on generating
 syntactically correct XHTML using a simple Perl notation.
 
@@ -272,7 +272,7 @@ provided to
 
 =item C<< new >>
 
-Create a new C<< HTML::Simple >>. No arguments
+Create a new C<< HTML::Tiny >>. No arguments
 
 =back
 
@@ -464,7 +464,7 @@ would print:
 
 =item Methods named after tags
 
-In addition to the methods described above C<< HTML::Simple >> provides
+In addition to the methods described above C<< HTML::Tiny >> provides
 all of the following HTML generation methods:
 
     a abbr acronym address area b base bdo big blockquote body br
@@ -571,11 +571,11 @@ Because JSON is valid Javascript this method can be useful when generating ad-ho
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-HTML::Simple requires no configuration files or environment variables.
+HTML::Tiny requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
-By design HTML::Simple has no non-core dependencies.
+By design HTML::Tiny has no non-core dependencies.
 
 =head1 INCOMPATIBILITIES
 
@@ -586,7 +586,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-html-simple@rt.cpan.org>, or through the web interface at
+C<bug-html-tiny@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

@@ -2,11 +2,11 @@
 
 use strict;
 use warnings;
-use HTML::Simple;
+use HTML::Tiny;
 
 $| = 1;
 
-my $h = HTML::Simple->new;
+my $h = HTML::Tiny->new;
 
 my $some_perl_data = {
     score   => 45,

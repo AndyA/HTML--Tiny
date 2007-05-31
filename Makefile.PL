@@ -7,16 +7,16 @@ warn "Optional ExtUtils::MakeMaker::Coverage not available\n" if $@;
 
 WriteMakefile(
     ( MM->can( 'signature_target' ) ? ( SIGN => 1 ) : () ),
-    NAME          => 'HTML::Simple',
+    NAME          => 'HTML::Tiny',
     AUTHOR        => 'Andy Armstrong <andy@hexten.net>',
     LICENSE       => 'perl',
-    VERSION_FROM  => 'lib/HTML/Simple.pm',
-    ABSTRACT_FROM => 'lib/HTML/Simple.pm',
+    VERSION_FROM  => 'lib/HTML/Tiny.pm',
+    ABSTRACT_FROM => 'lib/HTML/Tiny.pm',
     PL_FILES      => {},
     PREREQ_PM     => {
         'Test::More' => 0,
         'version'    => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES    => 'HTML-Simple-*' },
+    clean => { FILES    => 'HTML-Tiny-*' },
 );

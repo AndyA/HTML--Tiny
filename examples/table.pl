@@ -2,11 +2,11 @@
 
 use strict;
 use warnings;
-use HTML::Simple;
+use HTML::Tiny;
 
 $| = 1;
 
-my $h = HTML::Simple->new;
+my $h = HTML::Tiny->new;
 
 # Output a simple HTML page
 print $h->table(
