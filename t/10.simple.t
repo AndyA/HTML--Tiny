@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use HTML::Simple;
-use Test::More tests => 27;
+use Test::More tests => 28;
 
 ok my $h = HTML::Simple->new, 'Create succeeded';
 
@@ -31,6 +31,8 @@ is $h->tag( 'p', { class => 'small' }, 'a', 'b' ),
   '<p class="small">a</p><p class="small">b</p>', 'multi w/ attr OK';
 is $h->tag( 'p', { class => 'small' }, 'a', { class => undef }, 'b' ),
   '<p class="small">a</p><p>b</p>', 'change attr OK';
+is $h->closed( 'input', { type => 'checkbox', checked => [] } ),
+  '<input checked type="checkbox" />', 'Empty attr OK';
 
 # Stringification
 
@@ -77,4 +79,5 @@ is $h->json_encode( { a => 1, b => 2 } ), '{"a":1,"b":2}',
   'json simple hash OK';
 is $h->json_encode( { ar => [ 1, 2, 3, { a => 1, b => 2 } ] } ),
   '{"ar":[1,2,3,{"a":1,"b":2}]}', 'json complex OK';
-is $h->json_encode( { obj => $obj } ), '{"obj":"an object"}', 'json stringification OK';
+is $h->json_encode( { obj => $obj } ), '{"obj":"an object"}',
+  'json stringification OK';
