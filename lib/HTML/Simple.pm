@@ -5,7 +5,7 @@ use strict;
 use Carp;
 use Scalar::Util qw(blessed looks_like_number refaddr);
 
-use version; our $VERSION = qv( '0.3' );
+use version; our $VERSION = qv( '0.4' );
 
 BEGIN {
 
@@ -205,13 +205,17 @@ __END__
 
 =head1 NAME
 
-HTML::Simple - Simple HTML generation utilities
+HTML::Simple - Deprecated in favour of HTML::Tiny
 
 =head1 VERSION
 
-This document describes HTML::Simple version 0.3
+This document describes HTML::Simple version 0.4
 
 =head1 SYNOPSIS
+
+B<Note:> It turns out that TOMC owns the HTML::Simple namespace so I've
+moved development of this module to HTML::Tiny. Please use HTML::Tiny in
+preference to this module.
 
     use HTML::Simple;
 
