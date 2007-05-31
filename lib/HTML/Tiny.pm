@@ -212,7 +212,7 @@ __END__
 
 =head1 NAME
 
-HTML::Tiny - Tiny HTML generation utilities
+HTML::Tiny - Simple HTML generation utilities
 
 =head1 VERSION
 
