@@ -5,7 +5,7 @@ use strict;
 use Carp;
 use Scalar::Util qw(blessed looks_like_number refaddr);
 
-use version; our $VERSION = qv( '0.4' );
+use version; our $VERSION = qv( '0.5' );
 
 BEGIN {
 
@@ -155,6 +155,10 @@ sub tag {
         }
     }
 
+    # Special case: generate an empty tag pair if there's no content
+    push @out, $self->_tag( 0, $name, \%attr ) . $self->close( $name )
+      unless @out;
+
     return wantarray ? @out : join '', @out;
 }
 
@@ -212,7 +216,7 @@ HTML::Tiny - Tiny HTML generation utilities
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.4
+This document describes HTML::Tiny version 0.5
 
 =head1 SYNOPSIS
 
