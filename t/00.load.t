@@ -1,7 +1,7 @@
 use Test::More tests => 1;
 
 BEGIN {
-use_ok( 'HTML::Simple' );
+use_ok( 'HTML::Tiny' );
 }
 
-diag( "Testing HTML::Simple $HTML::Simple::VERSION" );
+diag( "Testing HTML::Tiny $HTML::Tiny::VERSION" );

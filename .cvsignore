@@ -6,5 +6,5 @@ _build*
 pm_to_blib*
 *.tar.gz
 .lwpcookies
-HTML-Simple-*
+HTML-Tiny-*
 cover_db

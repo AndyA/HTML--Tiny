@@ -1,9 +1,9 @@
 use strict;
 use warnings;
-use HTML::Simple;
+use HTML::Tiny;
 use Test::More tests => 7;
 
-ok my $h = HTML::Simple->new, 'Create succeeded';
+ok my $h = HTML::Tiny->new, 'Create succeeded';
 
 is $h->br, '<br />', 'br OK';
 is $h->input( { name => 'myfield', type => 'text' } ),

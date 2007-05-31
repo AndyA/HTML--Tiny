@@ -1,9 +1,9 @@
 use strict;
 use warnings;
-use HTML::Simple;
+use HTML::Tiny;
 use Test::More tests => 30;
 
-ok my $h = HTML::Simple->new, 'Create succeeded';
+ok my $h = HTML::Tiny->new, 'Create succeeded';
 
 # No attributes
 

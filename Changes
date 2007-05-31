@@ -1,4 +1,4 @@
-Revision history for HTML-Simple
+Revision history for HTML-Tiny
 
 0.1 2007-05-30
     Initial release.
@@ -11,3 +11,6 @@ Revision history for HTML-Simple
 
 0.3 2007-05-31
     Added empty array ref => empty attribute functionality.
+
+0.4 2007-05-31
+    Renamed to HTML::Tiny to avoid name clash with TOMC's module

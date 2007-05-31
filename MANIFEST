@@ -2,7 +2,7 @@ Changes
 examples/js.pl
 examples/simple.pl
 examples/table.pl
-lib/HTML/Simple.pm
+lib/HTML/Tiny.pm
 Makefile.PL
 MANIFEST
 README
