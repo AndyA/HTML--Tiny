@@ -14,3 +14,6 @@ Revision history for HTML-Tiny
 
 0.4 2007-05-31
     Renamed to HTML::Tiny to avoid name clash with TOMC's module
+
+0.5 2007-05-31
+    Made empty tags generate at least one tag pair.

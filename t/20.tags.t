@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use HTML::Tiny;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -13,6 +13,8 @@ is $h->p( 'hello, world' ), '<p>hello, world</p>', 'p OK';
 
 is $h->a( { href => 'http://hexten.net', title => 'Hexten' }, 'Hexten' ),
   '<a href="http://hexten.net" title="Hexten">Hexten</a>', 'a OK';
+
+is $h->textarea(), '<textarea></textarea>', 'empty tag OK';
 
 is $h->html(
     [
