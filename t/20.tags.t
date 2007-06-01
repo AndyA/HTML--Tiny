@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use HTML::Tiny;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -32,12 +32,28 @@ is $h->html(
   . "<p>Hello, World</p>\n<p class=\"detail\">Second para</p>\n"
   . "</body>\n</html>\n", 'complex HTML OK';
 
+is $h->table(
+    [
+        $h->tr(
+            [ $h->th( 'Name', 'Score', 'Position' ) ],
+            [ $h->td( 'Therese',  90, 1 ) ],
+            [ $h->td( 'Chrissie', 85, 2 ) ],
+            [ $h->td( 'Andy',     50, 3 ) ]
+        )
+    ]
+  ),
+  "<table><tr><th>Name</th><th>Score</th><th>Position</th></tr>\n"
+  . "<tr><td>Therese</td><td>90</td><td>1</td></tr>\n"
+  . "<tr><td>Chrissie</td><td>85</td><td>2</td></tr>\n"
+  . "<tr><td>Andy</td><td>50</td><td>3</td></tr>\n"
+  . "</table>\n", 'table OK';
+
 # Open / closed
 
-$h->set_open(qw(br hr));
+$h->set_open( qw(br hr) );
 is $h->br, '<br></br>', 'open br OK';
 is $h->hr, '<hr></hr>', 'open br OK';
-$h->set_closed(qw(br p));
-is $h->br, '<br />', 'closed br OK';
+$h->set_closed( qw(br p) );
+is $h->br, '<br />',    'closed br OK';
 is $h->hr, '<hr></hr>', 'open br OK';
-is $h->p, "<p />\n", 'closed p OK';
+is $h->p,  "<p />\n",   'closed p OK';

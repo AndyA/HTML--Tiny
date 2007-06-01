@@ -30,6 +30,12 @@ my @DEFAULT_CLOSED = qw( area base br col frame hr img input meta param );
 # Tags that get a trailing newline by default
 my @DEFAULT_NEWLINE = qw( html head body div p tr table );
 
+my %DEFAULT_AUTO = (
+    prefix => '',
+    suffix => '',
+    method => 'tag'
+);
+
 my %ENT_MAP = (
     '&' => '&amp;',
     '<' => '&lt;',
@@ -222,12 +228,12 @@ sub close {
 }
 
 sub auto_tag {
-    my $self   = shift;
-    my $name   = shift;
-    my $method = $self->{autotag}->{method}->{$name} || 'tag';
-    my $pre    = $self->{autotag}->{prefix}->{$name} || '';
-    my $post   = $self->{autotag}->{suffix}->{$name} || '';
-    my @out    = map { "${pre}${_}${post}" } $self->$method( $name, @_ );
+    my $self = shift;
+    my $name = shift;
+    my ( $method, $pre, $post ) =
+      map { $self->{autotag}->{$_}->{$name} || $DEFAULT_AUTO{$_} }
+      ( 'method', 'prefix', 'suffix' );
+    my @out = map { "${pre}${_}${post}" } $self->$method( $name, @_ );
     return wantarray ? @out : join '', @out;
 }
 
