@@ -28,7 +28,7 @@ BEGIN {
 my @DEFAULT_CLOSED = qw( area base br col frame hr img input meta param );
 
 # Tags that get a trailing newline by default
-my @DEFAULT_NEWLINE = qw( html head body div p );
+my @DEFAULT_NEWLINE = qw( html head body div p tr table );
 
 my %ENT_MAP = (
     '&' => '&amp;',
@@ -271,7 +271,7 @@ __END__
 
 =head1 NAME
 
-HTML::Tiny - Simple HTML generation utilities
+HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 

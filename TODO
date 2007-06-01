@@ -1,4 +1,0 @@
-Attributes:
-
-    Since undef means 'skip this attr' we need a way of specifying a
-    valueless attr - like 'checked'
