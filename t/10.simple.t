@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use HTML::Tiny;
-use Test::More tests => 30;
+use Test::More tests => 33;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -40,10 +40,23 @@ package T::Obj;
 sub new { bless {}, shift }
 sub as_string { 'an object' }
 
+package T::Obj2;
+sub new { bless {}, shift }
+
 package main;
 
 my $obj = T::Obj->new;
 is $h->tag( 'p', $obj ), '<p>an object</p>', 'stringification OK';
+my $obj2 = T::Obj2->new;
+like $h->tag( 'p', $obj2 ), qr{<p>T::Obj2=.+?</p>}, 'non as_string OK';
+
+# Only hashes allowed
+
+eval {
+    $h->closed({ src => 'spork' }, 'Text here');
+};
+
+like $@, qr{Attributes must be passed as hash references}, 'error on non-hash OK';
 
 # URL encoding, decoding
 
@@ -55,6 +68,7 @@ is $h->url_decode( '+%3chello%3e+' ), ' <hello> ',     'url_decode OK';
 is $h->query_encode( { a => 1, b => 2 } ), 'a=1&b=2', 'simple query_encode OK';
 is $h->query_encode( { a => 1, b => 2, '&' => '<html>' } ),
   '%26=%3chtml%3e&a=1&b=2', 'escaped query_encode OK';
+is $h->query_encode, '', 'empty query_encode OK';
 
 # Entity encoding
 

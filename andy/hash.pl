@@ -6,13 +6,26 @@ use Data::Dumper;
 
 $| = 1;
 
-my @l = ( { a => 'hash' }, ['array'], { another => 'hash' } );
+# my @l = ( { a => 'hash' }, ['array'], { another => 'hash' } );
+#
+# my %p = map { %$_ } grep { 'HASH' eq ref $_ } @l;
+#
+# my (@args, @attr);
+# push( @{ 'HASH' eq ref $_ ? \@args : \@attr }, $_ ) for @l;
+#
+# print Dumper( \%p );
+# print Dumper( \@args );
+# print Dumper( \@attr );
 
-my %p = map { %$_ } grep { 'HASH' eq ref $_ } @l;
+my %pog = (
+    say   => 'hello',
+    wave  => 'goodbye',
+    would => 'should',
+    could => 'did'
+);
 
-my (@args, @attr);
-push( @{ 'HASH' eq ref $_ ? \@args : \@attr }, $_ ) for @l;
+my $pr = \%pog;
 
-print Dumper( \%p );
-print Dumper( \@args );
-print Dumper( \@attr );
+delete @{$pr}{qw(say would)};
+
+print Dumper(\$pr);

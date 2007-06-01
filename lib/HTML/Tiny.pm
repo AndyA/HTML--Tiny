@@ -5,29 +5,30 @@ use strict;
 use Carp;
 use Scalar::Util qw(blessed looks_like_number refaddr);
 
-use version; our $VERSION = qv( '0.4' );
+use version; our $VERSION = qv( '0.6' );
 
 BEGIN {
 
     # http://www.w3schools.com/tags/default.asp
     for my $tag (
-        qw( a abbr acronym address area b base bdo big blockquote body
+        qw( a abbr acronym address area b base bdo big blockquote body br
         button caption cite code col colgroup dd del div dfn dl dt em
         fieldset form frame frameset h1 h2 h3 h4 h5 h6 head hr html i
-        iframe ins kbd label legend li link map meta noframes noscript
-        object ol optgroup option p param pre q samp script select small
-        span strong style sub sup table tbody td textarea tfoot th thead
-        title tr tt ul var )
+        iframe img input ins kbd label legend li link map meta noframes
+        noscript object ol optgroup option p param pre q samp script select
+        small span strong style sub sup table tbody td textarea tfoot th
+        thead title tr tt ul var )
       ) {
         no strict 'refs';
-        *$tag = sub { shift->tag( $tag, @_ ) };
-    }
-
-    for my $tag ( qw( br img input ) ) {
-        no strict 'refs';
-        *$tag = sub { shift->closed( $tag, @_ ) };
+        *$tag = sub { shift->auto_tag( $tag, @_ ) };
     }
 }
+
+# Tags that default to closed (<br /> versus <br></br>)
+my @DEFAULT_CLOSED = qw( area base br col frame hr img input meta param );
+
+# Tags that get a trailing newline by default
+my @DEFAULT_NEWLINE = qw( html head body div p tr table );
 
 my %ENT_MAP = (
     '&' => '&amp;',
@@ -61,6 +62,45 @@ sub new {
 
 sub _initialize {
     my $self = shift;
+    $self->set_closed( @DEFAULT_CLOSED );
+    $self->set_suffix( "\n", @DEFAULT_NEWLINE );
+}
+
+sub _set_auto {
+    my $self  = shift;
+    my $kind  = shift;
+    my $value = shift;
+
+    if ( defined $value ) {
+        $self->{autotag}->{$kind}->{$_} = $value for @_;
+    }
+    else {
+        delete @{ $self->{autotag}->{$kind} }{@_};
+    }
+}
+
+sub set_open {
+    my $self = shift;
+    $self->_set_auto( 'method', undef, @_ );
+}
+
+sub set_closed {
+    my $self = shift;
+    $self->_set_auto( 'method', 'closed', @_ );
+}
+
+sub set_prefix {
+    my $self   = shift;
+    my $prefix = shift;
+
+    $self->_set_auto( 'prefix', $prefix, @_ );
+}
+
+sub set_suffix {
+    my $self   = shift;
+    my $suffix = shift;
+
+    $self->_set_auto( 'suffix', $suffix, @_ );
 }
 
 sub _str {
@@ -115,6 +155,13 @@ sub _tag_value {
     return '="' . $self->entity_encode( $val ) . '"';
 }
 
+sub validate_tag {
+    my $self = shift;
+    my ( $closed, $name, $attr ) = @_;
+    # Do nothing. Subclass to throw an error for invalid tags
+    return;
+}
+
 sub _tag {
     my $self   = shift;
     my $closed = shift;
@@ -125,6 +172,8 @@ sub _tag {
 
     # Merge attribute hashes
     my %attr = map { %$_ } @_;
+
+    $self->validate_tag( $closed, $name, \%attr );
 
     # Generate markup
     return "<$name"
@@ -155,6 +204,10 @@ sub tag {
         }
     }
 
+    # Special case: generate an empty tag pair if there's no content
+    push @out, $self->_tag( 0, $name, \%attr ) . $self->close( $name )
+      unless @out;
+
     return wantarray ? @out : join '', @out;
 }
 
@@ -166,6 +219,16 @@ sub close {
     my $self = shift;
     my $name = shift;
     return "</$name>";
+}
+
+sub auto_tag {
+    my $self   = shift;
+    my $name   = shift;
+    my $method = $self->{autotag}->{method}->{$name} || 'tag';
+    my $pre    = $self->{autotag}->{prefix}->{$name} || '';
+    my $post   = $self->{autotag}->{suffix}->{$name} || '';
+    my @out    = map { "${pre}${_}${post}" } $self->$method( $name, @_ );
+    return wantarray ? @out : join '', @out;
 }
 
 # Minimal JSON encoder
@@ -208,11 +271,11 @@ __END__
 
 =head1 NAME
 
-HTML::Tiny - Tiny HTML generation utilities
+HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.4
+This document describes HTML::Tiny version 0.6
 
 =head1 SYNOPSIS
 
@@ -380,10 +443,9 @@ would print
 
     <p><b>Foo</b><b>Bar</b></p>
 
-This behaviour is powerful but can take a little time to master. If
-you imagine '[' and ']' preventing the propagation of the 'tag
-individual items' behaviour you might be close to being able to
-visualise how it works.
+This behaviour is powerful but can take a little time to master. If you
+imagine '[' and ']' preventing the propagation of the 'tag individual
+items' behaviour it might help visualise how it works.
 
 Here's an HTML table (using the tag-name convenience methods - see
 below) that demonstrates it in more detail:
@@ -462,7 +524,52 @@ would print:
 
     <marker lat="57.0" lon="-2" />
 
-=item Methods named after tags
+=item C<< auto_tag( $name, ... ) >>
+
+Calls either C<< tag >> or C<< closed >> based on built in rules
+for the tag. Used internally to implement the tag-named methods.
+
+=back
+
+=head2 Controlling auto_tag
+
+The format of tags generated by C<< auto_tag >> (i.e. tags created by a
+direct call to auto_tag or to one of the tag-named convenience methods)
+may be modified in a number of ways.
+
+Use C<< set_open >> / C<< set_closed >> to control whether the tags
+default to open (<br></br>) or closed (<br />).
+
+Use C<< set_prefix >> / C<< set_suffix >> to inject the specific string
+before / after each generated tag. Typically set_suffix is used to
+control which tags automatically have a newline appended after them.
+
+B<Note:> These settings I<only> affect tags generated by C<auto_tag> and
+the tag-named convenience methods. C<tag>, C<open>, C<close> and
+C<closed> provide a more primitive interface for tag creation which
+bypasses the auto-decoration stage.
+
+=over
+
+=item C<< set_open( $tagname, ... ) >>
+
+Specify a list of tags that will be generated in open form (<tag></tag>).
+
+=item C<< set_closed( $tagname, ... ) >>
+
+Specify a list of tags that will be generated in closed form (<tag />).
+
+=item C<< set_prefix( $prefix, $tagname, ... ) >>
+
+Set a prefix string to be added to the named tags.
+
+=item C<< set_suffix( $suffix, $tagname, ... ) >>
+
+Set a suffix string to be added to the named tags.
+
+=back
+
+=head2 Methods named after tags
 
 In addition to the methods described above C<< HTML::Tiny >> provides
 all of the following HTML generation methods:
@@ -475,9 +582,29 @@ all of the following HTML generation methods:
     small span strong style sub sup table tbody td textarea tfoot th
     thead title tr tt ul var
 
-With the exception of C<< br >>, C<< img >> and C<< input >> they are
-all called in the same way as C<< tag >> above - but with the tag
-name missing.
+The following methods generate closed XHTML (<br />) tags by default:
+
+    area base br col frame hr img input meta param
+
+So:
+
+    print $h->br;   # prints <br />
+    print $h->input({ name => 'field1' });
+                    # prints <input name="field1" />
+    print $h->img({ src => 'pic.jpg' });
+                    # prints <img src="pic.jpg" />
+
+This default behaviour can be overridden by calling C<< set_open >> or
+C<< set_closed >> with a list of tag names.
+
+All other tag methods generate tags to wrap whatever content they
+are passed:
+
+    print $h->p('Hello, World');
+
+prints:
+
+    <p>Hello, World</p>
 
 So the following are equivalent:
 
@@ -486,21 +613,6 @@ So the following are equivalent:
 and
 
     print $h->tag('a', { href => 'http://hexten.net' }, 'Hexten');
-
-C<< br >> and C<< input >> always generate closed XML style tags (in
-fact they call C<< closed >>).
-
-    print $h->br;   # prints <br />
-    print $h->input({ name => 'field1' });
-                    # prints <input name="field1" />
-    print $h->img({ src => 'pic.jpg' });
-                    # prints <img src="pic.jpg" />
-
-There's no way to override this default behaviour. If you need finer
-control over whether the tag is open or closed call C<tag>, C<open>,
-C<close> and C<closed> directly.
-
-=back
 
 =head2 Utility Methods
 
@@ -566,6 +678,19 @@ Because JSON is valid Javascript this method can be useful when generating ad-ho
     # <script type="text/javascript">
     # var someVar = {"history":[32,37,41,45],"name":"Fred","score":45};
     # </script>
+
+=back
+
+=head2 Subclassing
+
+An C<< HTML::Tiny >> is a blessed hash ref.
+
+=over
+
+=item C<< validate_tag( $closed, $name, $attr ) >>
+
+Subclass C<validate_tag> to throw an error or issue a warning when an
+attempt is made to generate an invalid tag.
 
 =back
 

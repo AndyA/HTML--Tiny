@@ -14,3 +14,11 @@ Revision history for HTML-Tiny
 
 0.4 2007-05-31
     Renamed to HTML::Tiny to avoid name clash with TOMC's module
+
+0.5 2007-05-31
+    Made empty tags generate at least one tag pair.
+
+0.6 2007-06-01
+    Added validate_tag subclassing hook.
+    Made it possible to specify the open/closed behaviour of tags.
+    Added auto-newline functionality, prefix/suffix specification.
