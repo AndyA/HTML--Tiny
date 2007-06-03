@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use Carp;
 
-our $VERSION = '0.7';
+our $VERSION = '0.8';
 
 BEGIN {
 
@@ -280,7 +280,7 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.7
+This document describes HTML::Tiny version 0.8
 
 =head1 SYNOPSIS
 
