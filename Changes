@@ -25,3 +25,6 @@ Revision history for HTML-Tiny
 
 0.7 2007-06-03
     Removed non-core dependencies. Oops.
+
+0.8 2007-06-03
+    Speeded up _str.

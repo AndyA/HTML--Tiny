@@ -110,12 +110,15 @@ sub set_suffix {
 
 sub _str {
     my $obj = shift;
-    # Flatten array refs...
-    return join '', @$obj
-      if 'ARRAY' eq ref $obj;
-    # ...stringify objects...
-    my $str = eval { $obj->as_string };
-    return $str unless $@;
+    if ( my $ref = ref $obj ) {
+        # Flatten array refs...
+        return join '', @$obj
+          if 'ARRAY' eq $ref;
+        # ...stringify objects...
+        my $str = eval { $obj->as_string };
+        return $str unless $@;
+    }
+
     # ...default stringification
     return "$obj";
 }
