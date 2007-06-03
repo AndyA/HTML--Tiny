@@ -22,3 +22,6 @@ Revision history for HTML-Tiny
     Added validate_tag subclassing hook.
     Made it possible to specify the open/closed behaviour of tags.
     Added auto-newline functionality, prefix/suffix specification.
+
+0.7 2007-06-03
+    Removed non-core dependencies. Oops.
