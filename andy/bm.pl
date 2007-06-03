@@ -7,7 +7,7 @@ use Scalar::Util qw/blessed/;
 
 $| = 1;
 
-sub _orig {
+sub _orig_str {
     my $obj = shift;
     # Flatten array refs...
     return join '', @$obj
@@ -19,7 +19,19 @@ sub _orig {
     return "$obj";
 }
 
-sub _str {
+sub _old_str {
+    my $obj = shift;
+    # Flatten array refs...
+    return join '', @$obj
+      if 'ARRAY' eq ref $obj;
+    # ...stringify objects...
+    my $str = eval { $obj->as_string };
+    return $str unless $@;
+    # ...default stringification
+    return "$obj";
+}
+
+sub _recent_str {
     my $obj = shift;
     if ( my $ref = ref $obj ) {
         # Flatten array refs...
@@ -34,14 +46,17 @@ sub _str {
     return "$obj";
 }
 
-sub _old_str {
+sub _new_str {
     my $obj = shift;
-    # Flatten array refs...
-    return join '', @$obj
-      if 'ARRAY' eq ref $obj;
-    # ...stringify objects...
-    my $str = eval { $obj->as_string };
-    return $str unless $@;
+    if ( my $ref = ref $obj ) {
+        # Flatten array refs...
+        return join '', map { _new_str( $_ ) } @$obj
+          if 'ARRAY' eq $ref;
+        # ...stringify objects...
+        my $str = eval { $obj->as_string };
+        return $str unless $@;
+    }
+
     # ...default stringification
     return "$obj";
 }
@@ -64,9 +79,10 @@ for my $spec (
     cmpthese(
         -1,
         {
-            "$desc: orig"     => sub { my $x = _orig( $in ) },
+            "$desc: original" => sub { my $x = _orig_str( $in ) },
             "$desc: released" => sub { my $x = _old_str( $in ) },
-            "$desc: new"      => sub { my $x = _str( $in ) },
+            "$desc: recent"   => sub { my $x = _recent_str( $in ) },
+            "$desc: new"      => sub { my $x = _new_str( $in ) },
         }
     );
 
