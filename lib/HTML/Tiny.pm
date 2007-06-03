@@ -3,9 +3,8 @@ package HTML::Tiny;
 use warnings;
 use strict;
 use Carp;
-use Scalar::Util qw(blessed looks_like_number refaddr);
 
-use version; our $VERSION = qv( '0.7' );
+our $VERSION = '0.7';
 
 BEGIN {
 
@@ -115,8 +114,8 @@ sub _str {
     return join '', @$obj
       if 'ARRAY' eq ref $obj;
     # ...stringify objects...
-    return $obj->as_string
-      if blessed $obj && $obj->can( 'as_string' );
+    my $str = eval { $obj->as_string };
+    return $str unless $@;
     # ...default stringification
     return "$obj";
 }
@@ -260,7 +259,7 @@ sub json_encode {
         }
     }
 
-    if ( looks_like_number $obj ) {
+    if ( $obj =~ /^-?\d+(?:[.]\d+)?$/ ) {
         return $obj;
     }
 
