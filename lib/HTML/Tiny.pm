@@ -191,6 +191,38 @@ sub _tag {
       . ( $closed ? ' />' : '>' );
 }
 
+# Faster: but confuses DProf - so use slower version while we speed other stuff up
+# sub _tag {
+#     my $self   = shift;
+#     my $closed = shift;
+#     my $name   = shift;
+# 
+#     croak "Attributes must be passed as hash references"
+#       if grep { 'HASH' ne ref $_ } @_;
+# 
+#     # Merge attribute hashes
+#     my %attr = map { %$_ } @_;
+# 
+#     $self->validate_tag( $closed, $name, \%attr );
+# 
+#     # Generate markup. NASTY code but it has been demonstrated (with
+#     # benchmarks and everything) to be considerably faster than the
+#     # marginally nicer looking code that used to live here.
+#     return "<$name" . join(
+#         '',
+#         map {
+#             " $_" . do {
+#                 my $val = $attr{$_};
+#                 ref $val ? '' : do {
+#                     $val =~ s/([<>'"&])/$ENT_MAP{$1}/eg;
+#                     qq{="$val"};
+#                 }
+#             }
+#           }
+#           sort grep { defined $attr{$_} } keys %attr
+#     ) . ( $closed ? ' />' : '>' );
+# }
+
 sub tag {
     my $self = shift;
     my $name = shift;

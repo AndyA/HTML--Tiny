@@ -11,7 +11,7 @@ sub validate_tag {
     my $self = shift;
     my ( $closed, $name, $attr ) = @_;
 
-    push @{ $self->{valid_args} }, [ $closed, $name, $attr ];
+    push @{ $self->{valid_args} }, [ $closed, $name, {%$attr} ];
 }
 
 sub get_validation { shift->{valid_args} }
