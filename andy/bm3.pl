@@ -70,9 +70,11 @@ sub _literal {
     return join( "\n", @out ) . "\n";
 }
 
-for ( 1 .. 10000 ) {
-    my $x = _html_tiny();
-}
+print _html_tiny();
+
+# for ( 1 .. 10000 ) {
+#     my $x = _html_tiny();
+# }
 # 
 # # Baseline
 # #
