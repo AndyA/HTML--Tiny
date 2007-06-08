@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+#use warnings;
 use ExtUtils::MakeMaker;
 
 eval 'use ExtUtils::MakeMaker::Coverage';

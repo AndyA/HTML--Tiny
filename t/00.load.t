@@ -1,7 +1,8 @@
-use Test::More tests => 1;
+use lib qw(t/lib);
+use Test;
 
-BEGIN {
-use_ok( 'HTML::Tiny' );
-}
+plan 1;
 
-diag( "Testing HTML::Tiny $HTML::Tiny::VERSION" );
+eval "use HTML::Tiny";
+ok !$@, 'Loaded OK';
+

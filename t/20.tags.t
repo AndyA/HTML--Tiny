@@ -1,7 +1,9 @@
 use strict;
-use warnings;
+use lib qw(t/lib);
+use Test;
 use HTML::Tiny;
-use Test::More tests => 14;
+
+plan 14;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
