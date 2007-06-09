@@ -3,7 +3,8 @@ use HTML::Tiny;
 use Test::More tests => 4;
 
 package My::HTML::Tiny;
-our @ISA = qw/HTML::Tiny/;
+use vars qw/@ISA/;
+@ISA = qw/HTML::Tiny/;
 use HTML::Tiny;
 
 sub validate_tag {
