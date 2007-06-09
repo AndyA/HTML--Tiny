@@ -4,7 +4,7 @@ use strict;
 use Carp;
 
 use vars qw/$VERSION/;
-$VERSION = '0.9';
+$VERSION = '0.10';
 
 BEGIN {
 
@@ -277,7 +277,7 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.9
+This document describes HTML::Tiny version 0.10
 
 =head1 SYNOPSIS
 
@@ -703,6 +703,8 @@ HTML::Tiny requires no configuration files or environment variables.
 =head1 DEPENDENCIES
 
 By design HTML::Tiny has no non-core dependencies.
+
+To run the tests you will require Test::More.
 
 =head1 INCOMPATIBILITIES
 

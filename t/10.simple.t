@@ -1,9 +1,6 @@
 use strict;
-use lib qw(t/lib);
-use Test;
 use HTML::Tiny;
-
-plan 33;
+use Test::More tests => 33;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -50,13 +47,15 @@ package main;
 my $obj = T::Obj->new;
 is $h->tag( 'p', $obj ), '<p>an object</p>', 'stringification OK';
 my $obj2 = T::Obj2->new;
-like $h->tag( 'p', $obj2 ), '<p>T::Obj2=.+?</p>', 'non as_string OK';
+like $h->tag( 'p', $obj2 ), qr{<p>T::Obj2=.+?</p>}, 'non as_string OK';
 
 # Only hashes allowed
 
-eval { $h->closed( { src => 'spork' }, 'Text here' ); };
+eval {
+    $h->closed({ src => 'spork' }, 'Text here');
+};
 
-like $@, 'Attributes must be passed as hash references', 'error on non-hash OK';
+like $@, qr{Attributes must be passed as hash references}, 'error on non-hash OK';
 
 # URL encoding, decoding
 
