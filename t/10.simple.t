@@ -51,13 +51,10 @@ like $h->tag( 'p', $obj2 ), '/<p>T::Obj2=.+?</p>/', 'non as_string OK';
 
 # Only hashes allowed
 
-eval {
-    $h->closed({ src => 'spork' }, 'Text here');
-};
+eval { $h->closed( { src => 'spork' }, 'Text here' ); };
 
-like $@,
-'/Attributes\s+must\s+be\s+passed\s+as\s+hash\s+references/',
-'error on non-hash OK';
+like $@, '/Attributes\s+must\s+be\s+passed\s+as\s+hash\s+references/',
+  'error on non-hash OK';
 
 # URL encoding, decoding
 

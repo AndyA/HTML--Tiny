@@ -1,11 +1,14 @@
 #!perl -T
 
 use Test::More;
+plan skip_all => 'Need qr{} to work'
+  if $] < 5.005;
 eval "use Test::Pod::Coverage 1.04";
 plan skip_all => "Test::Pod::Coverage 1.04 required for testing POD coverage"
   if $@;
-# Can't rely on this compiling on 5.0.4
-eval <<EOT;
+
+# Won't compile on 5.0.4: qr didn't exist then.
+eval <<'EOT';
 all_pod_coverage_ok(
     {
         private => [qr{^_}],
@@ -20,4 +23,3 @@ all_pod_coverage_ok(
     }
 );
 EOT
-
