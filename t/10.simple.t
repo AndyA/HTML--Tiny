@@ -54,9 +54,7 @@ like $h->tag( 'p', $obj2 ), '<p>T::Obj2=.+?</p>', 'non as_string OK';
 
 # Only hashes allowed
 
-eval {
-    $h->closed({ src => 'spork' }, 'Text here');
-};
+eval { $h->closed( { src => 'spork' }, 'Text here' ); };
 
 like $@, 'Attributes must be passed as hash references', 'error on non-hash OK';
 
