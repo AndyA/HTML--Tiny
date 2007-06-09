@@ -1,6 +1,5 @@
 package HTML::Tiny;
 
-#use warnings;
 use strict;
 use Carp;
 
@@ -51,14 +50,6 @@ my @UNPRINTABLE = qw(
   x18  x19  x1a  e    x1c  x1d  x1e  x1f
 );
 
-#sub _hash_re {
-#    my $hash = shift;
-#    my $match = join( '|', map quotemeta, sort keys %$hash );
-#    return qr/($match)/;
-#}
-#
-#my $ENT_RE = _hash_re( \%ENT_MAP );
-
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -78,9 +69,9 @@ sub _set_auto {
     my $value = shift;
 
     if ( defined $value ) {
-        for (@_) {
-        $self->{autotag}->{$kind}->{$_} = $value;
-    }
+        for ( @_ ) {
+            $self->{autotag}->{$kind}->{$_} = $value;
+        }
     }
     else {
         delete @{ $self->{autotag}->{$kind} }{@_};
@@ -238,7 +229,7 @@ sub auto_tag {
     my ( $method, $pre, $post ) =
       map { $self->{autotag}->{$_}->{$name} || $DEFAULT_AUTO{$_} }
       ( 'method', 'prefix', 'suffix' );
-    my @out = map { $pre.$_.$post } $self->$method( $name, @_ );
+    my @out = map { $pre . $_ . $post } $self->$method( $name, @_ );
     return wantarray ? @out : join '', @out;
 }
 

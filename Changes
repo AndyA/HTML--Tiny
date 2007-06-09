@@ -28,3 +28,6 @@ Revision history for HTML-Tiny
 
 0.8 2007-06-03
     Speeded up _str.
+
+0.9 2007-06-08
+    Made everything work with Perl 5.0.4.

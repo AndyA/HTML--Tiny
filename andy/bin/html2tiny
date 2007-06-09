@@ -1,0 +1,368 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use HTML::TokeParser;
+use HTML::Tiny;
+use Data::Dumper;
+use Perl::Tidy;
+
+################################# n::base #################################
+
+package n::base;
+
+use Data::Dumper;
+use Scalar::Util qw/blessed/;
+use Carp;
+
+sub pon {
+    my $self = shift;
+    my $obj  = shift;
+
+    confess "Blessed!" if blessed $obj;
+
+    local $Data::Dumper::Useqq  = 1;
+    local $Data::Dumper::Purity = 1;
+    my $val = Dumper( $obj );
+    $val =~ s/^\$VAR\d+\s+=\s+//;
+    $val =~ s/;\s*$//;
+    return $val;
+}
+
+sub list {
+    my $self = shift;
+    return join( ', ', map { $_->render } @_ );
+}
+
+sub name      { undef }
+sub atom      { shift }
+sub is_atomic { 1 }
+sub is_value  { 1 }
+sub is_empty  { 0 }
+
+################################# n::node #################################
+
+package n::node;
+our @ISA = qw/n::base/;
+
+sub new {
+    my $class = shift;
+    return bless { args => [@_] }, $class;
+}
+
+sub add_args {
+    my $self = shift;
+    push @{ $self->{args} }, grep { !$_->is_empty } @_;
+}
+
+# We define ourselves as atomic if we have a 0 or more hashes followed
+# by 0 or 1 atomic elements
+sub is_atomic {
+    my $self = shift;
+    my @args = @{ $self->{args} };
+
+    # Shift attributes off the front
+    shift @args while @args && !$args[0]->is_value;
+
+    # More than one element -> can't be atomic
+    return if @args > 1;
+    return ( @args == 0 || $args[0]->is_atomic );
+}
+
+sub atom {
+    my $self = shift;
+
+    return $self if $self->is_atomic;
+
+    # We're going to do major surgery - so make a copy
+    my @args = @{ $self->{args} };
+
+    # Keep the leading attrs safe
+    my @attr = ();
+    push @attr, shift @args while @args && !$args[0]->is_value;
+
+    # Throw an exception if we can't do it
+    for ( @args ) {
+        die "Can't make mixed arg list atomic"
+          unless $_->is_value;
+    }
+
+    $self->{args} = [ @attr, n::group->new( @args ) ];
+    return $self;
+}
+
+sub render {
+    my $self = shift;
+    my @out  = ();
+    if ( @{ $self->{args} } ) {
+        push @out, $self->list( @{ $self->{args} } );
+    }
+    return join( '', @out );
+}
+
+sub _merge {
+    # warn "_merge: ", join( ', ', map { $_->as_string } @_ ), "\n";
+    return @_ unless @_ > 1;
+
+    my $head = shift;
+
+    if (   $head->isa( 'n::call' )
+        && $_[0]->isa( 'n::call' )
+        && $head->name eq $_[0]->name ) {
+        my $next = shift;
+        $head->add_args( @{ $next->{node}->{args} } );
+    }
+
+    return ( $head, _merge( @_ ) );
+}
+
+sub merge {
+    my $self = shift;
+    $self->{args} = [ _merge( @{ $self->{args} } ) ];
+}
+
+sub as_string {
+    my $self = shift;
+    return join( '',
+        '[node[', join( ', ', map { $_->as_string } @{ $self->{args} } ),
+        ']]' );
+}
+
+################################# n::call #################################
+
+package n::call;
+our @ISA = qw/n::base/;
+
+sub new {
+    my $class = shift;
+    my $name  = shift;
+    my $node  = shift;
+    return bless { name => $name, node => n::node->new }, $class;
+}
+
+sub name      { shift->{name} }
+sub add_args  { shift->{node}->add_args( @_ ) }
+sub is_atomic { shift->{node}->is_atomic( @_ ) }
+sub merge     { shift->{node}->merge( @_ ) }
+
+sub atom {
+    my $self = shift;
+    eval { $self->{node} = $self->{node}->atom; };
+    return $self unless $@;
+    return n::group->new( $self );
+}
+
+sub render {
+    my $self = shift;
+    return join( '', '$h->', $self->{name}, '(', $self->{node}->render, ')' );
+}
+
+sub as_string {
+    my $self = shift;
+    return join( '',
+        '[call[', join( ',', $self->{name}, $self->{node}->as_string ), ']]' );
+}
+
+################################# n::attr #################################
+
+package n::attr;
+our @ISA = qw/n::base/;
+
+sub new {
+    my $class = shift;
+    my $attr  = shift;
+    return bless { attr => {%$attr} }, $class;
+}
+
+sub render {
+    my $self = shift;
+    return $self->pon( $self->{attr} );
+}
+
+sub is_value { 0 }
+
+sub as_string {
+    my $self = shift;
+    return '[attr[]]';
+}
+
+################################# n::scalar #################################
+
+package n::scalar;
+our @ISA = qw/n::base/;
+
+use Text::Wrap;
+
+sub new {
+    my $class = shift;
+    my $value = shift;
+    return bless { value => $value }, $class;
+}
+
+sub render {
+    my $self = shift;
+    my $str  = $self->{value};
+    $str =~ s/\s+/ /g;
+    my ( $start, $body, $end ) = $str =~ /^(\s*)(.+?)(\s*)$/;
+    local $Text::Wrap::columns = 50;
+    my @lines = split /\n/, wrap( '', '', $body );
+    # return unless @lines;
+    push @lines, '' unless @lines;
+    $lines[0] = $start . $lines[0];
+    $lines[$_] .= ' ' for 0 .. @lines - 2;
+    $lines[-1] .= $end;
+    return join( '.', map { $self->pon( $_ ) } @lines );
+}
+
+sub is_empty {
+    my $self = shift;
+    return ( $self->{value} =~ /^\s*$/ );
+}
+
+sub as_string {
+    my $self = shift;
+    return join( '', '[scalar["', $self->{value}, '"]]' );
+}
+
+################################# n::group #################################
+
+package n::group;
+our @ISA = qw/n::base/;
+
+sub new {
+    my $class = shift;
+    return bless [@_], $class;
+}
+
+sub render {
+    my $self = shift;
+    return join( '', '[', $self->list( @$self ), ']' );
+}
+
+sub as_string {
+    my $self = shift;
+    return
+      join( '', '[group[', join( ', ', map { $_->as_string } @$self ), ']]' );
+}
+
+package main;
+
+$| = 1;
+
+# my $nd = n::call->new( 'x' );
+# $nd->add_args(
+#     n::scalar->new( 'a' ),
+#     n::scalar->new( 'b' ),
+#     n::scalar->new( 'c' )
+# );
+# print Dumper( $nd );
+# my $at = $nd->atom;
+# print Dumper( $at );
+#
+# exit;
+
+#my $body = "<b class=\"frog\">Hello</b>";
+
+# my $body = <<EOT;
+# <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+# <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+#     <head><title>Test Page</title></head>
+#     <body>
+#         <p> This is the first paragraph. This is <b>BOLD</b>. </p>
+#         <p>This is the second paragraph. It contains a bit more text than the
+#         first paragraph so it'll probably have to wrap.</p>
+#         <p>By <a href="http://hexten.net/">Hexten</a></p>
+#         <table>
+#             <tr><th>Name</th><th>Score</th></tr>
+#             <tr><td>Therese</td><td>100</td></tr>
+#             <tr><td>Andy</td><td>60</td></tr>
+#         </table>
+#     </body>
+# </html>
+# EOT
+
+my $body = do { local $/; <> };
+my $dom = html2dom( $body );
+# print join( '', tidy( Dumper( $dom ) ) ), "\n";
+my @code = tidy( $dom->render );
+my $perl = join( '', @code );
+print $perl;
+my $h = HTML::Tiny->new;
+print eval $perl;
+# my @doc = dom2tiny( $dom );
+# print join( ', ', @doc ), "\n";
+
+sub html2dom {
+    my $html = shift;
+    my $p    = HTML::TokeParser->new( \$html );
+    $p->empty_element_tags( 1 );
+    my @stack = ( n::node->new );
+    while ( my $tok = $p->get_token ) {
+        my $type = shift @$tok;
+        die "Stack underrun" unless @stack;
+        if ( $type eq 'S' ) {
+            my ( $tag, $attr, $attrseq, $text ) = @$tok;
+            my $nd = n::call->new( $tag );
+            $nd->add_args( n::attr->new( $attr ) ) if %$attr;
+            push @stack, $nd;
+        }
+        elsif ( $type eq 'E' ) {
+            my ( $tag, $text ) = @$tok;
+            my $new = pop @stack;
+            my $expect = $new->name || '** end of document **';
+            die "Unmatched $tag (expected $expect)\n"
+              unless $expect eq $tag;
+            die "Stack underrun" unless @stack;
+            my $top = $stack[-1];
+            $new = $new->atom;
+            # $new->merge;
+            $top->add_args( $new );
+            $top->merge;
+        }
+        elsif ( $type eq 'T' || $type eq 'C' || $type eq 'D' ) {
+            my ( $text ) = @$tok;
+            my $top = $stack[-1];
+            $top->add_args( n::scalar->new( $text ) );
+        }
+        elsif ( $type eq 'PI' ) {
+            my ( $token0, $text ) = @$tok;
+            #print "$type, $token0, $text\n";
+        }
+    }
+
+    die "Mismatched tag\n"
+      unless @stack == 1;
+
+    return pop @stack;
+}
+
+sub dom2tiny {
+    my $dom = shift;
+
+    my @perl = ();
+    for my $node ( @$dom ) {
+        my @clause = ();
+        if ( 'HASH' eq ref $node ) {
+            push @clause, '$h->', $node->{tag};
+            my @args = ();
+            push @args, pon( $node->{attr} ) if %{ $node->{attr} };
+            push @args, dom2tiny( $node->{inner} );
+            if ( @args ) {
+                push @clause, '(', join( ', ', @args ), ')';
+            }
+            push @perl, join( '', @clause );
+        }
+        else {
+            push @perl, pon( $dom );
+        }
+    }
+    return @perl;
+}
+
+sub tidy {
+    my $src  = shift;
+    my @dest = ();
+    $src =~ s/\s+/ /g;
+    perltidy( source => \$src, destination => \@dest );
+    return wantarray ? @dest : join '', @dest;
+}
