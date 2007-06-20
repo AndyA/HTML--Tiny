@@ -233,7 +233,7 @@ sub auto_tag {
     return wantarray ? @out : join '', @out;
 }
 
-# Minimal JSON encoder
+# Minimal JSON encoder. Provided here for completeness - it's useful when generating JS.
 sub json_encode {
     my $self = shift;
     my $obj  = shift;
