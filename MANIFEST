@@ -10,6 +10,5 @@ t/00.load.t
 t/10.simple.t
 t/20.tags.t
 t/30.validate_tag.t
-t/40.prefix_suffix.t
 t/pod-coverage.t
 t/pod.t

@@ -34,3 +34,8 @@ Revision history for HTML-Tiny
 
 0.10    2007-06-09
         Reinstated Test::More based tests.
+
+0.11    2007-07-17
+        Simplicate and add lightness. Removed a load of cruft that nobody will
+        ever use. The various set_ accessors are gone.
+

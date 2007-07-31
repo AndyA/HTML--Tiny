@@ -1,6 +1,6 @@
 use strict;
 use HTML::Tiny;
-use Test::More tests => 14;
+use Test::More tests => 9;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -46,13 +46,3 @@ is $h->table(
   . "<tr><td>Chrissie</td><td>85</td><td>2</td></tr>\n"
   . "<tr><td>Andy</td><td>50</td><td>3</td></tr>\n"
   . "</table>\n", 'table OK';
-
-# Open / closed
-
-$h->set_open( qw(br hr) );
-is $h->br, '<br></br>', 'open br OK';
-is $h->hr, '<hr></hr>', 'open br OK';
-$h->set_closed( qw(br p) );
-is $h->br, '<br />',    'closed br OK';
-is $h->hr, '<hr></hr>', 'open br OK';
-is $h->p,  "<p />\n",   'closed p OK';
