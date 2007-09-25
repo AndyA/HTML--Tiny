@@ -117,15 +117,7 @@ sub new {
 
 sub _set_auto {
     my ( $self, $kind, $value ) = @_;
-
-    if ( defined $value ) {
-        for ( @_ ) {
-            $self->{autotag}->{$kind}->{$_} = $value;
-        }
-    }
-    else {
-        delete @{ $self->{autotag}->{$kind} }{@_};
-    }
+    $self->{autotag}->{$kind}->{$_} = $value for @_;
 }
 
 sub _str {
