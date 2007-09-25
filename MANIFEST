@@ -9,7 +9,8 @@ MANIFEST
 README
 t/000-load.t
 t/010-simple.t
-t/020-tags.t
-t/030-validate_tag.t
+t/020-coverage.t
+t/030-tags.t
+t/040-validate_tag.t
 xt/author/pod-coverage.t
 xt/author/pod.t
