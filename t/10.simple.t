@@ -1,6 +1,6 @@
 use strict;
 use HTML::Tiny;
-use Test::More tests => 33;
+use Test::More tests => 35;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -95,3 +95,22 @@ is $h->json_encode( { obj => $obj } ), '{"obj":"an object"}',
   'json stringification OK';
 is $h->json_encode( undef ), 'null', 'json null OK';
 is $h->json_encode( [undef] ), '[null]', 'json null in array OK';
+
+# Self referential
+{
+    my $foo = {};
+    my $bar = [$foo];
+    $foo->{bar} = $bar;
+    eval { $h->json_encode( $foo ) };
+    like $@, qr/referential/, 'self-ref error OK';
+}
+
+# Not self ref - but duplicated
+{
+    my $foo = { one => 1 };
+    my $bar = [ $foo, $foo, $foo ];
+    my $pog = { bar => $bar, foo => $foo };
+    is $h->json_encode( $pog ),
+      '{"bar":[{"one":1},{"one":1},{"one":1}],"foo":{"one":1}}',
+      'repeated reference OK';
+}

@@ -4,7 +4,7 @@ use strict;
 use Carp;
 
 use vars qw/$VERSION/;
-$VERSION = '0.901';
+$VERSION = '0.902';
 
 BEGIN {
 
@@ -182,9 +182,7 @@ sub open   { shift->_tag( 0, @_ ) }
 sub closed { shift->_tag( 1, @_ ) }
 
 # Generate a closing (X)HTML tag
-sub close {
-    return "</$_[1]>";
-}
+sub close { "</$_[1]>" }
 
 sub auto_tag {
     my $self = shift;
@@ -197,31 +195,34 @@ sub auto_tag {
 }
 
 # Minimal JSON encoder. Provided here for completeness - it's useful when generating JS.
-sub json_encode {
-    my $self = shift;
-    my $obj  = shift;
+sub _json_encode {
+    my ( $self, $seen, $obj ) = @_;
 
     return 'null' unless defined $obj;
 
     if ( my $type = ref $obj ) {
-        if ( 'HASH' eq $type ) {
-            return '{' . join(
+        croak "json_encode can't handle self referential structures"
+          if $seen->{$obj}++;
+        my $rep = ( 'HASH' eq $type )
+          ? (
+            '{' . join(
                 ',',
                 map {
-                        $self->json_encode( $_ ) . ':'
-                      . $self->json_encode( $obj->{$_} )
+                        $self->_json_encode( $seen, $_ ) . ':'
+                      . $self->_json_encode( $seen, $obj->{$_} )
                   } sort keys %$obj
-            ) . '}';
-        }
-        elsif ( 'ARRAY' eq $type ) {
-            return '['
-              . join( ',', map { $self->json_encode( $_ ) } @$obj ) . ']';
-        }
+              )
+              . '}'
+          )
+          : ( 'ARRAY' eq $type ) ? ( '['
+              . join( ',', map { $self->_json_encode( $seen, $_ ) } @$obj )
+              . ']' )
+          : undef;
+        delete $seen->{$obj};
+        return $rep if defined $rep;
     }
 
-    if ( $obj =~ /^-?\d+(?:[.]\d+)?$/ ) {
-        return $obj;
-    }
+    return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
 
     $obj = _str( $obj );
     $obj =~ s/\\/\\\\/g;
@@ -230,6 +231,8 @@ sub json_encode {
 
     return qq{"$obj"};
 }
+
+sub json_encode { shift->_json_encode( {}, @_ ) }
 
 1;
 __END__
@@ -240,7 +243,7 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.901
+This document describes HTML::Tiny version 0.902
 
 =head1 SYNOPSIS
 
