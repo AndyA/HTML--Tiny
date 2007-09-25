@@ -39,3 +39,9 @@ Revision history for HTML-Tiny
         Simplicate and add lightness. Removed a load of cruft that nobody will
         ever use. The various set_ accessors are gone.
 
+0.901
+        Really must work out what to do with version numbers.
+
+0.902   2007-09-25
+        Added recursion blocker to json_encode. Thanks to Yuval Kogman
+        for the suggestion.
