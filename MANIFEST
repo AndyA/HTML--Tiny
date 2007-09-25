@@ -7,9 +7,9 @@ lib/HTML/Tiny.pm
 Makefile.PL
 MANIFEST
 README
-t/00.load.t
-t/10.simple.t
-t/20.tags.t
-t/30.validate_tag.t
+t/000-load.t
+t/010-simple.t
+t/020-tags.t
+t/030-validate_tag.t
 xt/author/pod-coverage.t
 xt/author/pod.t
