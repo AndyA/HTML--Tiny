@@ -3,6 +3,16 @@ package HTML::Tiny;
 use strict;
 use Carp;
 
+=head1 NAME
+
+HTML::Tiny - Lightweight, dependency free HTML/XML generation
+
+=head1 VERSION
+
+This document describes HTML::Tiny version 0.903
+
+=cut
+
 use vars qw/$VERSION/;
 $VERSION = '0.903';
 
@@ -33,217 +43,6 @@ my %DEFAULT_AUTO = (
     suffix => '',
     method => 'tag'
 );
-
-my %ENT_MAP = (
-    '&' => '&amp;',
-    '<' => '&lt;',
-    '>' => '&gt;',
-    '"' => '&quot;',
-    "'" => '&apos;',
-);
-
-my @UNPRINTABLE = qw(
-  z    x01  x02  x03  x04  x05  x06  a
-  x08  t    n    v    f    r    x0e  x0f
-  x10  x11  x12  x13  x14  x15  x16  x17
-  x18  x19  x1a  e    x1c  x1d  x1e  x1f
-);
-
-sub new {
-    my $self = bless {}, shift;
-    $self->_set_auto( 'method', 'closed', @DEFAULT_CLOSED );
-    $self->_set_auto( 'suffix', "\n",     @DEFAULT_NEWLINE );
-    return $self;
-}
-
-sub _set_auto {
-    my ( $self, $kind, $value ) = @_;
-
-    if ( defined $value ) {
-        for ( @_ ) {
-            $self->{autotag}->{$kind}->{$_} = $value;
-        }
-    }
-    else {
-        delete @{ $self->{autotag}->{$kind} }{@_};
-    }
-}
-
-sub _str {
-    my $obj = shift;
-    if ( my $ref = ref $obj ) {
-
-        # Flatten array refs...
-        return join '', @$obj
-          if 'ARRAY' eq $ref;
-
-        # ...stringify objects...
-        my $str = eval { $obj->as_string };
-        return $str unless $@;
-    }
-
-    # ...default stringification
-    return "$obj";
-}
-
-# URL encode a string
-sub url_encode {
-    my $str = _str( $_[1] );
-    $str =~ s/([^A-Za-z0-9_])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
-    return $str;
-}
-
-sub url_decode {
-    my $str = $_[1];
-    $str =~ s/[+]/ /g;
-    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/eg;
-    return $str;
-}
-
-# Turn a hash reference into a query string.
-sub query_encode {
-    my $self = shift;
-    my $hash = shift || {};
-    return join '&', map {
-        join( '=', map { $self->url_encode( $_ ) } ( $_, $hash->{$_} ) )
-    } sort grep { defined $hash->{$_} } keys %$hash;
-}
-
-# (X)HTML entity encode a string
-sub entity_encode {
-    my $str = _str( $_[1] );
-    $str =~ s/([<>&'"])/$ENT_MAP{$1}/eg;
-    return $str;
-}
-
-sub _tag_value {
-    my ( $self, $val ) = @_;
-    return '' if ref $val;
-    return '="' . $self->entity_encode( $val ) . '"';
-}
-
-sub validate_tag {
-
-    # Do nothing. Subclass to throw an error for invalid tags
-}
-
-sub _tag {
-    my $self   = shift;
-    my $closed = shift;
-    my $name   = shift;
-
-    croak "Attributes must be passed as hash references"
-      if grep { 'HASH' ne ref $_ } @_;
-
-    # Merge attribute hashes
-    my %attr = map { %$_ } @_;
-
-    $self->validate_tag( $closed, $name, \%attr );
-
-    # Generate markup
-    return "<$name"
-      . join( '',
-        map         { ' ' . $_ . $self->_tag_value( $attr{$_} ) }
-          sort grep { defined $attr{$_} } keys %attr )
-      . ( $closed ? ' />' : '>' );
-}
-
-sub tag {
-    my $self = shift;
-    my $name = shift;
-
-    my %attr = ();
-    my @out  = ();
-
-    for my $a ( @_ ) {
-        if ( 'HASH' eq ref $a ) {
-
-            # Merge into attributes
-            %attr = ( %attr, %$a );
-        }
-        else {
-
-            # Generate markup
-            push @out,
-              $self->_tag( 0, $name, \%attr )
-              . _str( $a )
-              . $self->close( $name );
-        }
-    }
-
-    # Special case: generate an empty tag pair if there's no content
-    push @out, $self->_tag( 0, $name, \%attr ) . $self->close( $name )
-      unless @out;
-
-    return wantarray ? @out : join '', @out;
-}
-
-sub open   { shift->_tag( 0, @_ ) }
-sub closed { shift->_tag( 1, @_ ) }
-
-# Generate a closing (X)HTML tag
-sub close { "</$_[1]>" }
-
-sub auto_tag {
-    my $self = shift;
-    my $name = shift;
-    my ( $method, $post )
-      = map { $self->{autotag}->{$_}->{$name} || $DEFAULT_AUTO{$_} }
-      ( 'method', 'suffix' );
-    my @out = map { $_ . $post } $self->$method( $name, @_ );
-    return wantarray ? @out : join '', @out;
-}
-
-# Minimal JSON encoder. Provided here for completeness - it's useful when generating JS.
-sub _json_encode {
-    my ( $self, $seen, $obj ) = @_;
-
-    return 'null' unless defined $obj;
-
-    if ( my $type = ref $obj ) {
-        croak "json_encode can't handle self referential structures"
-          if $seen->{$obj}++;
-        my $rep = ( 'HASH' eq $type )
-          ? (
-            '{' . join(
-                ',',
-                map {
-                        $self->_json_encode( $seen, $_ ) . ':'
-                      . $self->_json_encode( $seen, $obj->{$_} )
-                  } sort keys %$obj
-              )
-              . '}'
-          )
-          : ( 'ARRAY' eq $type ) ? ( '['
-              . join( ',', map { $self->_json_encode( $seen, $_ ) } @$obj )
-              . ']' )
-          : undef;
-        delete $seen->{$obj};
-        return $rep if defined $rep;
-    }
-
-    return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
-
-    $obj = _str( $obj );
-    $obj =~ s/\\/\\\\/g;
-    $obj =~ s/"/\\"/g;
-    $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
-
-    return qq{"$obj"};
-}
-
-sub json_encode { shift->_json_encode( {}, @_ ) }
-
-1;
-__END__
-
-=head1 NAME
-
-HTML::Tiny - Lightweight, dependency free HTML/XML generation
-
-=head1 VERSION
-
-This document describes HTML::Tiny version 0.903
 
 =head1 SYNOPSIS
 
@@ -306,6 +105,45 @@ provided to
 Create a new C<< HTML::Tiny >>. No arguments
 
 =back
+
+=cut
+
+sub new {
+    my $self = bless {}, shift;
+    $self->_set_auto( 'method', 'closed', @DEFAULT_CLOSED );
+    $self->_set_auto( 'suffix', "\n",     @DEFAULT_NEWLINE );
+    return $self;
+}
+
+sub _set_auto {
+    my ( $self, $kind, $value ) = @_;
+
+    if ( defined $value ) {
+        for ( @_ ) {
+            $self->{autotag}->{$kind}->{$_} = $value;
+        }
+    }
+    else {
+        delete @{ $self->{autotag}->{$kind} }{@_};
+    }
+}
+
+sub _str {
+    my $obj = shift;
+    if ( my $ref = ref $obj ) {
+
+        # Flatten array refs...
+        return join '', @$obj
+          if 'ARRAY' eq $ref;
+
+        # ...stringify objects...
+        my $str = eval { $obj->as_string };
+        return $str unless $@;
+    }
+
+    # ...default stringification
+    return "$obj";
+}
 
 =head2 HTML Generation
 
@@ -442,6 +280,37 @@ Note how you don't need a td() for every cell or a tr() for every row.
 Notice also how the square brackets around the rows prevent tr() from
 wrapping each individual cell.
 
+=cut
+
+sub tag {
+    my ( $self, $name ) = splice @_, 0, 2;
+
+    my %attr = ();
+    my @out  = ();
+
+    for my $a ( @_ ) {
+        if ( 'HASH' eq ref $a ) {
+
+            # Merge into attributes
+            %attr = ( %attr, %$a );
+        }
+        else {
+
+            # Generate markup
+            push @out,
+              $self->_tag( 0, $name, \%attr )
+              . _str( $a )
+              . $self->close( $name );
+        }
+    }
+
+    # Special case: generate an empty tag pair if there's no content
+    push @out, $self->_tag( 0, $name, \%attr ) . $self->close( $name )
+      unless @out;
+
+    return wantarray ? @out : join '', @out;
+}
+
 =item C<< open( $name, ... ) >>
 
 Generate an opening HTML or XML tag. For example:
@@ -464,6 +333,10 @@ As for C<< tag >> multiple attribute hash references will be merged. The example
 
     print $h->open('marker', { lat => 57.0 }, { lon => -2 });
 
+=cut
+
+sub open { shift->_tag( 0, @_ ) }
+
 =item C<< close( $name ) >>
 
 Generate a closing HTML or XML tag. For example:
@@ -473,6 +346,10 @@ Generate a closing HTML or XML tag. For example:
 would print:
 
     </marker>
+
+=cut
+
+sub close { "</$_[1]>" }
 
 =item C<< closed( $name, ... ) >>
 
@@ -492,10 +369,25 @@ would print:
 
     <marker lat="57.0" lon="-2" />
 
+=cut
+
+sub closed { shift->_tag( 1, @_ ) }
+
 =item C<< auto_tag( $name, ... ) >>
 
 Calls either C<< tag >> or C<< closed >> based on built in rules
 for the tag. Used internally to implement the tag-named methods.
+
+=cut
+
+sub auto_tag {
+    my ( $self, $name ) = splice @_, 0, 2;
+    my ( $method, $post )
+      = map { $self->{autotag}->{$_}->{$name} || $DEFAULT_AUTO{$_} }
+      ( 'method', 'suffix' );
+    my @out = map { $_ . $post } $self->$method( $name, @_ );
+    return wantarray ? @out : join '', @out;
+}
 
 =back
 
@@ -551,12 +443,28 @@ URL encode a string. Spaces become '+' and unprintable characters are
 encoded as '%' + their hexadecimal character code.
 
     $h->url_encode( ' <hello> ' )   # returns '+%3chello%3e+'
+=cut
+
+sub url_encode {
+    my $str = _str( $_[1] );
+    $str =~ s/([^A-Za-z0-9_])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
+    return $str;
+}
 
 =item C<< url_decode( $str ) >>
 
 URL decode a string. Reverses the effect of C<< url_encode >>.
 
     $h->url_decode( '+%3chello%3e+' )   # returns ' <hello> '
+
+=cut
+
+sub url_decode {
+    my $str = $_[1];
+    $str =~ s/[+]/ /g;
+    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/eg;
+    return $str;
+}
 
 =item C<< query_encode( $hash_ref ) >>
 
@@ -568,6 +476,16 @@ would print
 
     a=1&b=2
 
+=cut
+
+sub query_encode {
+    my $self = shift;
+    my $hash = shift || {};
+    return join '&', map {
+        join( '=', map { $self->url_encode( $_ ) } ( $_, $hash->{$_} ) )
+    } sort grep { defined $hash->{$_} } keys %$hash;
+}
+
 =item C<< entity_encode( $str ) >>
 
 Encode the characters '<', '>', '&', '\'' and '"' as their HTML entity
@@ -578,6 +496,102 @@ equivalents:
 would print:
 
     &lt;&gt;&apos;&quot;&amp;
+
+=cut
+
+{
+    my %ENT_MAP = (
+        '&' => '&amp;',
+        '<' => '&lt;',
+        '>' => '&gt;',
+        '"' => '&quot;',
+        "'" => '&apos;',
+    );
+
+    sub entity_encode {
+        my $str = _str( $_[1] );
+        $str =~ s/([<>&'"])/$ENT_MAP{$1}/eg;
+        return $str;
+    }
+}
+
+sub _tag_value {
+    my ( $self, $val ) = @_;
+    return '' if ref $val;
+    return '="' . $self->entity_encode( $val ) . '"';
+}
+
+sub validate_tag {
+
+    # Do nothing. Subclass to throw an error for invalid tags
+}
+
+sub _tag {
+    my ( $self, $closed, $name ) = splice @_, 0, 3;
+
+    croak "Attributes must be passed as hash references"
+      if grep { 'HASH' ne ref $_ } @_;
+
+    # Merge attribute hashes
+    my %attr = map { %$_ } @_;
+
+    $self->validate_tag( $closed, $name, \%attr );
+
+    # Generate markup
+    return "<$name"
+      . join( '',
+        map         { ' ' . $_ . $self->_tag_value( $attr{$_} ) }
+          sort grep { defined $attr{$_} } keys %attr )
+      . ( $closed ? ' />' : '>' );
+}
+
+{
+    my @UNPRINTABLE = qw(
+      z    x01  x02  x03  x04  x05  x06  a
+      x08  t    n    v    f    r    x0e  x0f
+      x10  x11  x12  x13  x14  x15  x16  x17
+      x18  x19  x1a  e    x1c  x1d  x1e  x1f
+    );
+
+    # Minimal JSON encoder. Provided here for completeness - it's useful
+    # when generating JS.
+    sub _json_encode {
+        my ( $self, $seen, $obj ) = @_;
+
+        return 'null' unless defined $obj;
+
+        if ( my $type = ref $obj ) {
+            croak "json_encode can't handle self referential structures"
+              if $seen->{$obj}++;
+            my $rep = ( 'HASH' eq $type )
+              ? (
+                '{' . join(
+                    ',',
+                    map {
+                            $self->_json_encode( $seen, $_ ) . ':'
+                          . $self->_json_encode( $seen, $obj->{$_} )
+                      } sort keys %$obj
+                  )
+                  . '}'
+              )
+              : ( 'ARRAY' eq $type ) ? ( '['
+                  . join( ',', map { $self->_json_encode( $seen, $_ ) } @$obj )
+                  . ']' )
+              : undef;
+            delete $seen->{$obj};
+            return $rep if defined $rep;
+        }
+
+        return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
+
+        $obj = _str( $obj );
+        $obj =~ s/\\/\\\\/g;
+        $obj =~ s/"/\\"/g;
+        $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
+
+        return qq{"$obj"};
+    }
+}
 
 =item C<< json_encode >>
 
@@ -605,6 +619,13 @@ Because JSON is valid Javascript this method can be useful when generating ad-ho
     # <script type="text/javascript">
     # var someVar = {"history":[32,37,41,45],"name":"Fred","score":45};
     # </script>
+
+=cut
+
+sub json_encode { shift->_json_encode( {}, @_ ) }
+
+1;
+__END__
 
 =back
 

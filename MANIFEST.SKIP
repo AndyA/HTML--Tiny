@@ -10,6 +10,10 @@
 ^blib/
 ^pm_to_blib$
 
+# MB generated files and dirs
+^Build$
+^_build/
+
 # Temp, old and emacs backup files.
 ~$
 ^\.DS_Store
