@@ -45,3 +45,6 @@ Revision history for HTML-Tiny
 0.902   2007-09-25
         Added recursion blocker to json_encode. Thanks to Yuval Kogman
         for the suggestion.
+
+0.903   2007-09-26
+        Added new deferred method call syntax.
