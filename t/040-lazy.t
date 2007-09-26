@@ -17,7 +17,7 @@ is $h->textarea(), '<textarea></textarea>', 'empty tag OK';
 
 is $h->html(
     [
-        $h->head( $h->title( 'Sample page' ) ),
+        [ \'head', $h->title( 'Sample page' ) ],
         $h->body(
             [
                 $h->h1( { class => 'main' }, 'Sample page' ),

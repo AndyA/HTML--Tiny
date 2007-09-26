@@ -121,8 +121,27 @@ sub _set_auto {
 }
 
 sub _str {
-    my $obj = shift;
+    my ( $self, $obj ) = @_;
     if ( my $ref = ref $obj ) {
+
+        # if ( 'ARRAY' eq ref $a ) {
+        #     if ( @$a && 'SCALAR' eq ref $a->[0] ) {
+        #         my @call   = @$a;
+        #         my $method = ${ shift @call };
+        #         use Data::Dumper;
+        #         warn "# ",
+        #           Dumper(
+        #             {
+        #                 method => $method,
+        #                 args   => \@call
+        #             }
+        #           );
+        #         push @r, $self->$method( @call );
+        #     }
+        # }
+        # else {
+        #     push @r, $a;
+        # }
 
         # Flatten array refs...
         return join '', @$obj
@@ -280,9 +299,7 @@ sub tag {
     my %attr = ();
     my @out  = ();
 
-    # TODO: Add deferred calls (specified as [ \'method', ... ])
-
-    for my $a ( $self->expand( @_ ) ) {
+    for my $a ( @_ ) {
         if ( 'HASH' eq ref $a ) {
 
             # Merge into attributes
@@ -293,7 +310,7 @@ sub tag {
             # Generate markup
             push @out,
               $self->_tag( 0, $name, \%attr )
-              . _str( $a )
+              . $self->_str( $a )
               . $self->close( $name );
         }
     }
@@ -383,32 +400,6 @@ sub auto_tag {
     return wantarray ? @out : join '', @out;
 }
 
-=item C<< expand( @args ) >>
-
-Expand any array references whose first element is a scalar reference
-by calling the method named by the scalar reference on the remainder of
-the array. This allows lazy calls to be embedded in an HTML or XML
-structure.
-
-=cut
-
-sub expand {
-    my $self = shift;
-    my @r;
-    for my $a ( @_ ) {
-        if ( 'ARRAY' eq ref $a && @$a && 'SCALAR' eq ref $a->[0] ) {
-            my @call   = @$a;
-            my $method = ${ shift @call };
-            push @r, $self->$method( @call );
-        }
-        else {
-            push @r, $a;
-        }
-    }
-
-    return wantarray ? @r : join '', @r;
-}
-
 =back
 
 =head2 Methods named after tags
@@ -466,7 +457,7 @@ encoded as '%' + their hexadecimal character code.
 =cut
 
 sub url_encode {
-    my $str = _str( $_[1] );
+    my $str = $_[0]->_str( $_[1] );
     $str =~ s/([^A-Za-z0-9_])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
     return $str;
 }
@@ -529,7 +520,7 @@ would print:
     );
 
     sub entity_encode {
-        my $str = _str( $_[1] );
+        my $str = $_[0]->_str( $_[1] );
         $str =~ s/([<>&'"])/$ENT_MAP{$1}/eg;
         return $str;
     }
@@ -604,7 +595,7 @@ sub _tag {
 
         return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
 
-        $obj = _str( $obj );
+        $obj = $self->_str( $obj );
         $obj =~ s/\\/\\\\/g;
         $obj =~ s/"/\\"/g;
         $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
