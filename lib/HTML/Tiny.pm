@@ -280,7 +280,9 @@ sub tag {
     my %attr = ();
     my @out  = ();
 
-    for my $a ( @_ ) {
+    # TODO: Add deferred calls (specified as [ \'method', ... ])
+
+    for my $a ( $self->expand( @_ ) ) {
         if ( 'HASH' eq ref $a ) {
 
             # Merge into attributes
@@ -379,6 +381,32 @@ sub auto_tag {
       ( 'method', 'suffix' );
     my @out = map { $_ . $post } $self->$method( $name, @_ );
     return wantarray ? @out : join '', @out;
+}
+
+=item C<< expand( @args ) >>
+
+Expand any array references whose first element is a scalar reference
+by calling the method named by the scalar reference on the remainder of
+the array. This allows lazy calls to be embedded in an HTML or XML
+structure.
+
+=cut
+
+sub expand {
+    my $self = shift;
+    my @r;
+    for my $a ( @_ ) {
+        if ( 'ARRAY' eq ref $a && @$a && 'SCALAR' eq ref $a->[0] ) {
+            my @call   = @$a;
+            my $method = ${ shift @call };
+            push @r, $self->$method( @call );
+        }
+        else {
+            push @r, $a;
+        }
+    }
+
+    return wantarray ? @r : join '', @r;
 }
 
 =back

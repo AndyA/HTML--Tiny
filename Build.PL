@@ -1,5 +1,4 @@
 use strict;
-use warnings;
 use Module::Build;
 
 my $build_class = Module::Build->subclass(
