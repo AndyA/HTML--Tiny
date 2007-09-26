@@ -120,42 +120,6 @@ sub _set_auto {
     $self->{autotag}->{$kind}->{$_} = $value for @_;
 }
 
-sub _str {
-    my ( $self, $obj ) = @_;
-    if ( my $ref = ref $obj ) {
-
-        # if ( 'ARRAY' eq ref $a ) {
-        #     if ( @$a && 'SCALAR' eq ref $a->[0] ) {
-        #         my @call   = @$a;
-        #         my $method = ${ shift @call };
-        #         use Data::Dumper;
-        #         warn "# ",
-        #           Dumper(
-        #             {
-        #                 method => $method,
-        #                 args   => \@call
-        #             }
-        #           );
-        #         push @r, $self->$method( @call );
-        #     }
-        # }
-        # else {
-        #     push @r, $a;
-        # }
-
-        # Flatten array refs...
-        return join '', @$obj
-          if 'ARRAY' eq $ref;
-
-        # ...stringify objects...
-        my $str = eval { $obj->as_string };
-        return $str unless $@;
-    }
-
-    # ...default stringification
-    return "$obj";
-}
-
 =head2 HTML Generation
 
 =over
@@ -291,6 +255,33 @@ Note how you don't need a td() for every cell or a tr() for every row.
 Notice also how the square brackets around the rows prevent tr() from
 wrapping each individual cell.
 
+Often when generating nested HTML you will find yourself writing
+corresponding nested calls to HTML generation methods. The table
+generation code above is an example of this.
+
+If you prefer these nested method calls can be deferred like this:
+
+    print $h->table(
+        [
+            \'tr',
+            [ \'th', 'Name',     'Score', 'Position' ],
+            [ \'td', 'Therese',  90,      1 ],
+            [ \'td', 'Chrissie', 85,      2 ],
+            [ \'td', 'Andy',     50,      3 ]
+        ]
+    );
+
+In general a nested call like
+
+    $h->method( args )
+
+may be rewritten like this
+
+    [ \'method', args ]
+
+This allows complex HTML to be expressed as a pure data structure. See
+the C<stringify> method for more information.
+
 =cut
 
 sub tag {
@@ -310,7 +301,7 @@ sub tag {
             # Generate markup
             push @out,
               $self->_tag( 0, $name, \%attr )
-              . $self->_str( $a )
+              . $self->stringify( $a )
               . $self->close( $name );
         }
     }
@@ -400,6 +391,72 @@ sub auto_tag {
     return wantarray ? @out : join '', @out;
 }
 
+=item C<< stringify( $obj ) >>
+
+Called internally to obtain string representations of values.
+
+It also implements the deferred method call notation (mentioned above) so that
+
+    my $table = $h->table(
+        [
+            $h->tr(
+                [ $h->th( 'Name', 'Score', 'Position' ) ],
+                [ $h->td( 'Therese',  90, 1 ) ],
+                [ $h->td( 'Chrissie', 85, 2 ) ],
+                [ $h->td( 'Andy',     50, 3 ) ]
+            )
+        ]
+    );
+
+may also be written like this:
+
+    my $table = $h->stringify(
+        [
+            \'table',
+            [
+                \'tr',
+                [ \'th', 'Name',     'Score', 'Position' ],
+                [ \'td', 'Therese',  90,      1 ],
+                [ \'td', 'Chrissie', 85,      2 ],
+                [ \'td', 'Andy',     50,      3 ]
+            ]
+        ]
+    );
+
+Any reference to an array whose first element is a reference to a scalar
+
+    [ \'methodname', args ]
+
+is executed as a call to the named method with the specified args.
+
+=cut
+
+sub stringify {
+    my ( $self, $obj ) = @_;
+    if ( my $ref = ref $obj ) {
+
+        # Flatten array refs...
+        if ( 'ARRAY' eq $ref ) {
+            # Check for deferred method call specified as a scalar
+            # ref...
+            if ( @$obj && 'SCALAR' eq ref $obj->[0] ) {
+                my ( $method, @args ) = @$obj;
+                return join '', $self->$$method( @args );
+            }
+            else {
+                return join '', map { $self->stringify( $_ ) } @$obj;
+            }
+        }
+
+        # ...stringify objects...
+        my $str = eval { $obj->as_string };
+        return $str unless $@;
+    }
+
+    # ...default stringification
+    return "$obj";
+}
+
 =back
 
 =head2 Methods named after tags
@@ -457,7 +514,7 @@ encoded as '%' + their hexadecimal character code.
 =cut
 
 sub url_encode {
-    my $str = $_[0]->_str( $_[1] );
+    my $str = $_[0]->stringify( $_[1] );
     $str =~ s/([^A-Za-z0-9_])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
     return $str;
 }
@@ -520,7 +577,7 @@ would print:
     );
 
     sub entity_encode {
-        my $str = $_[0]->_str( $_[1] );
+        my $str = $_[0]->stringify( $_[1] );
         $str =~ s/([<>&'"])/$ENT_MAP{$1}/eg;
         return $str;
     }
@@ -595,7 +652,7 @@ sub _tag {
 
         return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
 
-        $obj = $self->_str( $obj );
+        $obj = $self->stringify( $obj );
         $obj =~ s/\\/\\\\/g;
         $obj =~ s/"/\\"/g;
         $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
