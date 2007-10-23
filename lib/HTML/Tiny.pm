@@ -9,12 +9,12 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.903
+This document describes HTML::Tiny version 0.904
 
 =cut
 
 use vars qw/$VERSION/;
-$VERSION = '0.903';
+$VERSION = '0.904';
 
 BEGIN {
 
@@ -116,7 +116,7 @@ sub new {
 }
 
 sub _set_auto {
-    my ( $self, $kind, $value ) = @_;
+    my ( $self, $kind, $value ) = splice @_, 0, 3;
     $self->{autotag}->{$kind}->{$_} = $value for @_;
 }
 
@@ -507,8 +507,8 @@ and
 
 =item C<< url_encode( $str ) >>
 
-URL encode a string. Spaces become '+' and unprintable characters are
-encoded as '%' + their hexadecimal character code.
+URL encode a string. Spaces become '+' and non-alphanumeric characters
+are encoded as '%' + their hexadecimal character code.
 
     $h->url_encode( ' <hello> ' )   # returns '+%3chello%3e+'
 =cut
@@ -665,13 +665,14 @@ sub _tag {
 
 Encode a data structure in JSON (Javascript) format:
 
-    print $h->json_encode( { ar => [ 1, 2, 3, { a => 1, b => 2 } ] } )
+    print $h->json_encode( { ar => [ 1, 2, 3, { a => 1, b => 2 } ] } );
 
 would print:
     
     {"ar":[1,2,3,{"a":1,"b":2}]}
 
-Because JSON is valid Javascript this method can be useful when generating ad-hoc Javascript. For example
+Because JSON is valid Javascript this method can be useful when
+generating ad-hoc Javascript. For example
 
     my $some_perl_data = {
         score   => 45,
@@ -738,7 +739,8 @@ Andy Armstrong  C<< <andy@hexten.net> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2007, Andy Armstrong C<< <andy@hexten.net> >>. All rights reserved.
+Copyright (c) 2007, Andy Armstrong C<< <andy@hexten.net> >>. All
+rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
