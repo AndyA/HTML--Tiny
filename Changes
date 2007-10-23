@@ -48,3 +48,8 @@ Revision history for HTML-Tiny
 
 0.903   2007-09-26
         Added new deferred method call syntax.
+
+0.904   2007-10-23
+        Minor documentation fixes.
+        Fixed (invisible) bug in _set_auto arg handling.
+        
