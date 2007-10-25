@@ -737,6 +737,8 @@ L<http://rt.cpan.org>.
 
 Andy Armstrong  C<< <andy@hexten.net> >>
 
+Aristotle Pagaltzis C<< <pagaltzis@gmx.de> >>
+
 =head1 LICENCE AND COPYRIGHT
 
 Copyright (c) 2007, Andy Armstrong C<< <andy@hexten.net> >>. All
