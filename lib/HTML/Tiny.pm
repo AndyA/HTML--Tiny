@@ -449,8 +449,8 @@ sub stringify {
         }
 
         # ...stringify objects...
-        my $str = eval { $obj->as_string };
-        return $str unless $@;
+        my $str;
+        return $str if eval { $str = $obj->as_string; 1 };
     }
 
     # ...default stringification
