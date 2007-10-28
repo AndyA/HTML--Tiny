@@ -70,7 +70,7 @@ is $h->query_encode, '', 'empty query_encode OK';
 
 # Entity encoding
 
-is $h->entity_encode( '<>\'"&' ), '&lt;&gt;&apos;&quot;&amp;',
+is $h->entity_encode( '<>\'"&' ), '&lt;&gt;&#39;&#34;&amp;',
   'entity_encode OK';
 
 # JSON encoding
