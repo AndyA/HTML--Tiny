@@ -9,12 +9,12 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 0.905
+This document describes HTML::Tiny version 1.00
 
 =cut
 
 use vars qw/$VERSION/;
-$VERSION = '0.905';
+$VERSION = '1.00';
 
 BEGIN {
 
@@ -515,7 +515,7 @@ are encoded as '%' + their hexadecimal character code.
 
 sub url_encode {
     my $str = $_[0]->stringify( $_[1] );
-    $str =~ s/([^A-Za-z0-9_])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
+    $str =~ s/([^A-Za-z0-9_~])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
     return $str;
 }
 

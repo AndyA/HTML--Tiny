@@ -1,6 +1,6 @@
 use strict;
 use HTML::Tiny;
-use Test::More tests => 35;
+use Test::More tests => 36;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -15,7 +15,8 @@ is $h->closed( 'br' ), '<br />', 'simple closed OK';
 is $h->tag( 'b', '' ), '<b></b>', 'simple tag OK';
 is $h->tag( 'b', 'a', 'b' ), '<b>a</b><b>b</b>', 'multi tag OK';
 is $h->tag( 'b', [ 'a', 'b' ] ), '<b>ab</b>', 'grouped tag OK';
-is $h->tag( 'p', $h->tag( 'b', 'a', 'b' ) ), '<p><b>a</b></p><p><b>b</b></p>',
+is $h->tag( 'p', $h->tag( 'b', 'a', 'b' ) ),
+  '<p><b>a</b></p><p><b>b</b></p>',
   'nested multi tag OK';
 is $h->tag( 'p', $h->tag( 'b', [ 'a', 'b' ] ) ), '<p><b>ab</b></p>',
   'nested grouped tag OK';
@@ -24,7 +25,8 @@ is $h->tag( 'p', $h->tag( 'b', [ 'a', 'b' ] ) ), '<p><b>ab</b></p>',
 
 is $h->open( 'p', { class => 'normal' } ), '<p class="normal">',
   'simple attr OK';
-is $h->open( 'p', { class => 'normal', style => undef } ), '<p class="normal">',
+is $h->open( 'p', { class => 'normal', style => undef } ),
+  '<p class="normal">',
   'skip undef attr OK';
 is $h->tag( 'p', { class => 'small' }, 'a', 'b' ),
   '<p class="small">a</p><p class="small">b</p>', 'multi w/ attr OK';
@@ -60,10 +62,12 @@ like $@, '/Attributes\s+must\s+be\s+passed\s+as\s+hash\s+references/',
 
 is $h->url_encode( ' <hello> ' ),     '+%3chello%3e+', 'url_encode OK';
 is $h->url_decode( '+%3chello%3e+' ), ' <hello> ',     'url_decode OK';
+is $h->url_encode( '~' ),             '~',             'tilde OK';
 
 # Query encoding
 
-is $h->query_encode( { a => 1, b => 2 } ), 'a=1&b=2', 'simple query_encode OK';
+is $h->query_encode( { a => 1, b => 2 } ), 'a=1&b=2',
+  'simple query_encode OK';
 is $h->query_encode( { a => 1, b => 2, '&' => '<html>' } ),
   '%26=%3chtml%3e&a=1&b=2', 'escaped query_encode OK';
 is $h->query_encode, '', 'empty query_encode OK';
