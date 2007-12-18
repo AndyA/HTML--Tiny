@@ -530,7 +530,7 @@ URL decode a string. Reverses the effect of C<< url_encode >>.
 sub url_decode {
     my $str = $_[1];
     $str =~ s/[+]/ /g;
-    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/eg;
+    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/ieg;
     return $str;
 }
 

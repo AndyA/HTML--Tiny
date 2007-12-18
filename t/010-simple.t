@@ -1,6 +1,6 @@
 use strict;
 use HTML::Tiny;
-use Test::More tests => 36;
+use Test::More tests => 37;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
 
@@ -63,6 +63,15 @@ like $@, '/Attributes\s+must\s+be\s+passed\s+as\s+hash\s+references/',
 is $h->url_encode( ' <hello> ' ),     '+%3chello%3e+', 'url_encode OK';
 is $h->url_decode( '+%3chello%3e+' ), ' <hello> ',     'url_decode OK';
 is $h->url_encode( '~' ),             '~',             'tilde OK';
+
+is $h->url_decode( '%7B%22m%22:%22setValue%22,'
+      . '%22ns%22:%22http://hexten.net/%22,'
+      . '%22n%22:%22Hexten%20Test%22,'
+      . '%22a%22:[%22porridge%22,1]%7D' ), '{"m":"setValue",'
+  . '"ns":"http://hexten.net/",'
+  . '"n":"Hexten Test",'
+  . '"a":["porridge",1]}',
+  'complex OK';
 
 # Query encoding
 
