@@ -55,3 +55,6 @@ Revision history for HTML-Tiny
 
 1.00    2007-12-11
         url_encode now encodes '~' as '~'.
+
+1.01    2007-12-18
+        url_decode now handles uppercase hex correctly.

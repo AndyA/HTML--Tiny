@@ -9,12 +9,12 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 1.01
+This document describes HTML::Tiny version 1.02
 
 =cut
 
 use vars qw/$VERSION/;
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 BEGIN {
 
@@ -530,7 +530,7 @@ URL decode a string. Reverses the effect of C<< url_encode >>.
 sub url_decode {
     my $str = $_[1];
     $str =~ s/[+]/ /g;
-    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/eg;
+    $str =~ s/%([0-9a-f]{2})/chr(hex($1))/ieg;
     return $str;
 }
 
