@@ -1,4 +1,3 @@
-Build.PL
 Changes
 examples/js.pl
 examples/simple.pl
@@ -6,6 +5,7 @@ examples/table.pl
 lib/HTML/Tiny.pm
 Makefile.PL
 MANIFEST
+META.yml
 README
 t/000-load.t
 t/010-simple.t
@@ -15,4 +15,3 @@ t/040-lazy.t
 t/050-validate_tag.t
 xt/author/pod-coverage.t
 xt/author/pod.t
-META.yml
