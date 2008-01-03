@@ -2,8 +2,8 @@
 #
 #  wiki
 #
-#  Created by Andy Armstrong on 2007-06-04.
-#  Copyright (c) 2007 Hexten. All rights reserved.
+#  Created by Andy Armstrong on 2008-06-04.
+#  Copyright (c) 2008 Hexten. All rights reserved.
 
 use strict;
 use warnings;
@@ -221,7 +221,7 @@ print $h->html(
                                             ),
                                             "<!-- Saved in parser cache with key "
                                               . "hexten-mw_:pcache:idhash:97-0!1!0!!en!2 and "
-                                              . "timestamp 20070603143518 -->",
+                                              . "timestamp 20080603143518 -->",
                                             $h->div(
                                                 { "class" => "printfooter" },
                                                 [
@@ -755,7 +755,7 @@ print $h->html(
                                     [
                                         $h->li(
                                             { "id" => "lastmod" },
-                                            " This page was last modified 15:34, 3 June 2007.",
+                                            " This page was last modified 15:34, 3 June 2008.",
                                             { "id" => "viewcount" },
                                             "This page has been accessed one time.",
                                             { "id" => "copyright" },

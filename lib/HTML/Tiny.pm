@@ -753,7 +753,7 @@ Aristotle Pagaltzis C<< <pagaltzis@gmx.de> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2007, Andy Armstrong C<< <andy@hexten.net> >>. All
+Copyright (c) 2008, Andy Armstrong C<< <andy@hexten.net> >>. All
 rights reserved.
 
 This module is free software; you can redistribute it and/or
