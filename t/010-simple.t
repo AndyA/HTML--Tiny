@@ -1,39 +1,60 @@
 use strict;
 use HTML::Tiny;
-use Test::More tests => 37;
+use Test::More tests => 51;
 
 ok my $h = HTML::Tiny->new, 'Create succeeded';
+ok my $h_html = HTML::Tiny->new( mode => 'html' ),
+  'Create succeeded (mode HTML)';
 
-# No attributes
+common_checks( $h );
+common_checks( $h_html, ' (mode HTML)' );
 
-is $h->open( 'b' ),    '<b>',    'simple open OK';
-is $h->close( 'b' ),   '</b>',   'simple close OK';
-is $h->closed( 'br' ), '<br />', 'simple closed OK';
+# Differences between the two output modes.
 
-# Tag options
+is $h->closed( 'br' ),      '<br />', 'simple closed OK';
+is $h_html->closed( 'br' ), '<br>',   'simple closed OK (mode HTML)';
 
-is $h->tag( 'b', '' ), '<b></b>', 'simple tag OK';
-is $h->tag( 'b', 'a', 'b' ), '<b>a</b><b>b</b>', 'multi tag OK';
-is $h->tag( 'b', [ 'a', 'b' ] ), '<b>ab</b>', 'grouped tag OK';
-is $h->tag( 'p', $h->tag( 'b', 'a', 'b' ) ),
-  '<p><b>a</b></p><p><b>b</b></p>',
-  'nested multi tag OK';
-is $h->tag( 'p', $h->tag( 'b', [ 'a', 'b' ] ) ), '<p><b>ab</b></p>',
-  'nested grouped tag OK';
-
-# Attributes
-
-is $h->open( 'p', { class => 'normal' } ), '<p class="normal">',
-  'simple attr OK';
-is $h->open( 'p', { class => 'normal', style => undef } ),
-  '<p class="normal">',
-  'skip undef attr OK';
-is $h->tag( 'p', { class => 'small' }, 'a', 'b' ),
-  '<p class="small">a</p><p class="small">b</p>', 'multi w/ attr OK';
-is $h->tag( 'p', { class => 'small' }, 'a', { class => undef }, 'b' ),
-  '<p class="small">a</p><p>b</p>', 'change attr OK';
 is $h->closed( 'input', { type => 'checkbox', checked => [] } ),
-  '<input checked type="checkbox" />', 'Empty attr OK';
+  '<input checked="checked" type="checkbox" />', 'Empty attr OK';
+is $h_html->closed( 'input', { type => 'checkbox', checked => [] } ),
+  '<input checked type="checkbox">', 'Empty attr OK (mode HTML)';
+
+sub common_checks {
+    my $h = shift;
+    my $mode = shift || '';
+
+    # No attributes
+
+    is $h->open( 'b' ),  '<b>',  'simple open OK' . $mode;
+    is $h->close( 'b' ), '</b>', 'simple close OK' . $mode;
+
+    # Tag options
+
+    is $h->tag( 'b', '' ), '<b></b>', 'simple tag OK' . $mode;
+    is $h->tag( 'b', 'a', 'b' ), '<b>a</b><b>b</b>',
+      'multi tag OK' . $mode;
+    is $h->tag( 'b', [ 'a', 'b' ] ), '<b>ab</b>',
+      'grouped tag OK' . $mode;
+    is $h->tag( 'p', $h->tag( 'b', 'a', 'b' ) ),
+      '<p><b>a</b></p><p><b>b</b></p>',
+      'nested multi tag OK' . $mode;
+    is $h->tag( 'p', $h->tag( 'b', [ 'a', 'b' ] ) ), '<p><b>ab</b></p>',
+      'nested grouped tag OK' . $mode;
+
+    # Attributes
+
+    is $h->open( 'p', { class => 'normal' } ), '<p class="normal">',
+      'simple attr OK' . $mode;
+    is $h->open( 'p', { class => 'normal', style => undef } ),
+      '<p class="normal">',
+      'skip undef attr OK' . $mode;
+    is $h->tag( 'p', { class => 'small' }, 'a', 'b' ),
+      '<p class="small">a</p><p class="small">b</p>',
+      'multi w/ attr OK' . $mode;
+    is $h->tag( 'p', { class => 'small' }, 'a', { class => undef },
+        'b' ), '<p class="small">a</p><p>b</p>', 'change attr OK'
+      . $mode;
+}
 
 # Stringification
 
