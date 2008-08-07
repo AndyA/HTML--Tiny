@@ -1,6 +1,7 @@
 --- #YAML:1.0
 name:                HTML-Tiny
-version:             1.02
+version:             1.03
+
 
 
 abstract:            Lightweight, dependency free HTML/XML generation

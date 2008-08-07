@@ -9,12 +9,12 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 1.02
+This document describes HTML::Tiny version 1.03
 
 =cut
 
 use vars qw/$VERSION/;
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 BEGIN {
 
@@ -34,7 +34,8 @@ BEGIN {
 }
 
 # Tags that are closed (<br /> versus <br></br>)
-my @DEFAULT_CLOSED = qw( area base br col frame hr img input meta param );
+my @DEFAULT_CLOSED
+  = qw( area base br col frame hr img input meta param );
 
 # Tags that get a trailing newline
 my @DEFAULT_NEWLINE = qw( html head body div p tr table );
@@ -57,7 +58,11 @@ my %DEFAULT_AUTO = (
             $h->body(
                 [
                     $h->h1( { class => 'main' }, 'Sample page' ),
-                    $h->p( 'Hello, World', { class => 'detail' }, 'Second para' )
+                    $h->p(
+                        'Hello, World',
+                        { class => 'detail' },
+                        'Second para'
+                    )
                 ]
             )
         ]
@@ -77,9 +82,9 @@ my %DEFAULT_AUTO = (
 
 =head1 DESCRIPTION
 
-C<< HTML::Tiny >> is a simple, dependency free module for
-generating HTML (and XML). It concentrates on generating
-syntactically correct XHTML using a simple Perl notation.
+C<< HTML::Tiny >> is a simple, dependency free module for generating
+HTML (and XML). It concentrates on generating syntactically correct
+XHTML using a simple Perl notation.
 
 In addition to the HTML generation functions utility functions are
 provided to
@@ -102,7 +107,24 @@ provided to
 
 =item C<< new >>
 
-Create a new C<< HTML::Tiny >>. No arguments
+Create a new C<< HTML::Tiny >>. The constructor takes one optional
+argument: C<< mode >>. C<< mode >> can be either C<< 'xml' >> (default)
+or C<< 'html' >>. The difference is that in HTML mode, closed tags will
+not be closed with a forward slash; instead, closed tags will be
+returned as single open tags.
+
+Example:
+
+    # Set HTML mode.
+    my $h = HTML::Tiny->new( mode => 'html' );
+
+    # The default is XML mode, but this can also be defined explicitly.
+    $h = HTML::Tiny->new( mode => 'xml' );
+
+HTML is a dialect of SGML, and is not XML in any way. "Orphan" open tags
+or unclosed tags are legal and in fact expected by user agents. In
+practice, if you want to generate XML or XHTML, supply no arguments. If
+you want valid HTML, use C<< mode => 'html' >>.
 
 =back
 
@@ -110,6 +132,16 @@ Create a new C<< HTML::Tiny >>. No arguments
 
 sub new {
     my $self = bless {}, shift;
+
+    my %params = @_;
+    my $mode = $params{'mode'} || 'xml';
+
+    croak "Unknown mode: $mode"
+      unless $mode eq 'xml'
+          or $mode eq 'html';
+
+    $self->{'_mode'} = $mode;
+
     $self->_set_auto( 'method', 'closed', @DEFAULT_CLOSED );
     $self->_set_auto( 'suffix', "\n",     @DEFAULT_NEWLINE );
     return $self;
@@ -300,7 +332,7 @@ sub tag {
 
             # Generate markup
             push @out,
-              $self->_tag( 0, $name, \%attr )
+                $self->_tag( 0, $name, \%attr )
               . $self->stringify( $a )
               . $self->close( $name );
         }
@@ -363,7 +395,8 @@ would print:
 
     <marker />
 
-As for C<< tag >> and C<< open >> attributes may be provided as hash references:
+As for C<< tag >> and C<< open >> attributes may be provided as hash
+references:
 
     print $h->closed('marker', { lat => 57.0 }, { lon => -2 });
 
@@ -395,7 +428,8 @@ sub auto_tag {
 
 Called internally to obtain string representations of values.
 
-It also implements the deferred method call notation (mentioned above) so that
+It also implements the deferred method call notation (mentioned
+above) so that
 
     my $table = $h->table(
         [
@@ -515,7 +549,8 @@ are encoded as '%' + their hexadecimal character code.
 
 sub url_encode {
     my $str = $_[0]->stringify( $_[1] );
-    $str =~ s/([^A-Za-z0-9_~])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
+    $str
+      =~ s/([^A-Za-z0-9_~])/$1 eq ' ' ? '+' : sprintf("%%%02x", ord($1))/eg;
     return $str;
 }
 
@@ -572,14 +607,14 @@ would print:
         '&'   => '&amp;',
         '<'   => '&lt;',
         '>'   => '&gt;',
-        '"'   => '&#34;', # shorter than &quot;
-        "'"   => '&#39;', # HTML does not define &apos;
+        '"'   => '&#34;',    # shorter than &quot;
+        "'"   => '&#39;',    # HTML does not define &apos;
         "\xA" => '&#10;',
         "\xD" => '&#13;',
     );
 
     my $text_special = qr/([<>&'"])/;
-    my $attr_special = qr/([<>&'"\x0A\x0D])/; # FIXME needs tests
+    my $attr_special = qr/([<>&'"\x0A\x0D])/;    # FIXME needs tests
 
     sub entity_encode {
         my $str = $_[0]->stringify( $_[1] );
@@ -593,13 +628,15 @@ sub _attr {
     my ( $self, $attr, $val ) = @_;
 
     if ( ref $val ) {
-        return $attr if 1; # FIXME correct condition: !$xml_mode
-        $val = $attr;      # FIXME needs tests
+        return $attr if not $self->_xml_mode;
+        $val = $attr;
     }
 
     my $enc_val = $self->entity_encode( $val, 1 );
     return qq{$attr="$enc_val"};
 }
+
+sub _xml_mode { $_[0]->{'_mode'} eq 'xml' }
 
 sub validate_tag {
     # Do nothing. Subclass to throw an error for invalid tags
@@ -620,9 +657,9 @@ sub _tag {
     my $tag = join( ' ',
         "<$name",
         map { $self->_attr( $_, $attr{$_} ) }
-        sort grep { defined $attr{$_} } keys %attr );
+          sort grep { defined $attr{$_} } keys %attr );
 
-    return $tag . ( $closed ? ' />' : '>' ); # FIXME must be $closed && $xml_mode
+    return $tag . ( $closed && $self->_xml_mode ? ' />' : '>' );
 }
 
 {
@@ -654,9 +691,14 @@ sub _tag {
                   )
                   . '}'
               )
-              : ( 'ARRAY' eq $type ) ? ( '['
-                  . join( ',', map { $self->_json_encode( $seen, $_ ) } @$obj )
-                  . ']' )
+              : ( 'ARRAY' eq $type ) ? (
+                '['
+                  . join(
+                    ',',
+                    map { $self->_json_encode( $seen, $_ ) } @$obj
+                  )
+                  . ']'
+              )
               : undef;
             delete $seen->{$obj};
             return $rep if defined $rep;
@@ -667,7 +709,8 @@ sub _tag {
         $obj = $self->stringify( $obj );
         $obj =~ s/\\/\\\\/g;
         $obj =~ s/"/\\"/g;
-        $obj =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
+        $obj
+          =~ s/ ( [\x00-\x1f] ) / '\\' . $UNPRINTABLE[ ord($1) ] /gex;
 
         return qq{"$obj"};
     }
