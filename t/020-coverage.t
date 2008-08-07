@@ -5,10 +5,10 @@ use HTML::Tiny;
 # We have 100% coverage without these tests. Consider these extra
 # security against something getting twisted out of shape.
 
-my @schedule;
+my %schedule;
 
 BEGIN {
-    @schedule = (
+    my @common_schedule = (
         {
             "expect_list" => [
                 "<a href=\"http://hexten.net\">Hexten</a>",
@@ -34,22 +34,19 @@ BEGIN {
             "expect_list" =>
               [ "<acronym>one</acronym>", "<acronym>two</acronym>" ],
             "args" => [ {}, "one", { x => 1 }, { x => undef }, "two" ],
-            "expect_scalar" => "<acronym>one</acronym><acronym>two</acronym>",
-            "method"        => "acronym"
+            "expect_scalar" =>
+              "<acronym>one</acronym><acronym>two</acronym>",
+            "method" => "acronym"
         },
         {
-            "expect_list" =>
-              [ "<address>onetwo</address>", "<address>threefour</address>" ],
+            "expect_list" => [
+                "<address>onetwo</address>",
+                "<address>threefour</address>"
+            ],
             "args" => [ [ "one", "two" ], [ "three", "four" ] ],
             "expect_scalar" =>
               "<address>onetwo</address><address>threefour</address>",
             "method" => "address"
-        },
-        {
-            "args"          => [ { name => 'foo' } ],
-            "expect_scalar" => "<area name=\"foo\" />",
-            "expect_list"   => ["<area name=\"foo\" />"],
-            "method"        => "area"
         },
         {
             "expect_list"   => ["<one>two</one>"],
@@ -62,12 +59,6 @@ BEGIN {
             "args"          => [ "one",        "two" ],
             "expect_scalar" => "<b>one</b><b>two</b>",
             "method"        => "b"
-        },
-        {
-            "args" => [ { href => 'http://hexten.net/' } ],
-            "expect_scalar" => "<base href=\"http://hexten.net/\" />",
-            "expect_list"   => ["<base href=\"http://hexten.net/\" />"],
-            "method"        => "base"
         },
         {
             "expect_list" => [ "<bdo>one</bdo>", "<bdo>two</bdo>" ],
@@ -83,7 +74,8 @@ BEGIN {
         },
         {
             "expect_list" => [
-                "<blockquote>one</blockquote>", "<blockquote>two</blockquote>"
+                "<blockquote>one</blockquote>",
+                "<blockquote>two</blockquote>"
             ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
@@ -91,28 +83,27 @@ BEGIN {
             "method" => "blockquote"
         },
         {
-            "expect_list" => [ "<body>one</body>\n", "<body>two</body>\n" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<body>one</body>\n", "<body>two</body>\n" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<body>one</body>\n<body>two</body>\n",
             "method"        => "body"
         },
         {
-            "args"          => [],
-            "expect_scalar" => "<br />",
-            "method"        => "br"
-        },
-        {
-            "expect_list" => [ "<button>one</button>", "<button>two</button>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<button>one</button><button>two</button>",
-            "method"        => "button"
+            "expect_list" =>
+              [ "<button>one</button>", "<button>two</button>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<button>one</button><button>two</button>",
+            "method" => "button"
         },
         {
             "expect_list" =>
               [ "<caption>one</caption>", "<caption>two</caption>" ],
             "args" => [ "one", "two" ],
-            "expect_scalar" => "<caption>one</caption><caption>two</caption>",
-            "method"        => "caption"
+            "expect_scalar" =>
+              "<caption>one</caption><caption>two</caption>",
+            "method" => "caption"
         },
         {
             "expect_list" => [ "<cite>one</cite>", "<cite>two</cite>" ],
@@ -127,32 +118,23 @@ BEGIN {
             "method"        => "close"
         },
         {
-            "args"          => ['frob'],
-            "expect_scalar" => "<frob />",
-            "method"        => "closed"
-        },
-        {
             "expect_list" => [ "<code>one</code>", "<code>two</code>" ],
             "args"        => [ "one",              "two" ],
             "expect_scalar" => "<code>one</code><code>two</code>",
             "method"        => "code"
         },
         {
-            "args"          => [],
-            "expect_scalar" => "<col />",
-            "method"        => "col"
-        },
-        {
-            "expect_list" =>
-              [ "<colgroup>one</colgroup>", "<colgroup>two</colgroup>" ],
+            "expect_list" => [
+                "<colgroup>one</colgroup>", "<colgroup>two</colgroup>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<colgroup>one</colgroup><colgroup>two</colgroup>",
             "method" => "colgroup"
         },
         {
-            "expect_list"   => [ "<dd>one</dd>", "<dd>two</dd>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<dd>one</dd>", "<dd>two</dd>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<dd>one</dd><dd>two</dd>",
             "method"        => "dd"
         },
@@ -175,20 +157,20 @@ BEGIN {
             "method"        => "div"
         },
         {
-            "expect_list"   => [ "<dl>one</dl>", "<dl>two</dl>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<dl>one</dl>", "<dl>two</dl>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<dl>one</dl><dl>two</dl>",
             "method"        => "dl"
         },
         {
-            "expect_list"   => [ "<dt>one</dt>", "<dt>two</dt>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<dt>one</dt>", "<dt>two</dt>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<dt>one</dt><dt>two</dt>",
             "method"        => "dt"
         },
         {
-            "expect_list"   => [ "<em>one</em>", "<em>two</em>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<em>one</em>", "<em>two</em>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<em>one</em><em>two</em>",
             "method"        => "em"
         },
@@ -199,8 +181,9 @@ BEGIN {
             "method"        => "entity_encode"
         },
         {
-            "expect_list" =>
-              [ "<fieldset>one</fieldset>", "<fieldset>two</fieldset>" ],
+            "expect_list" => [
+                "<fieldset>one</fieldset>", "<fieldset>two</fieldset>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<fieldset>one</fieldset><fieldset>two</fieldset>",
@@ -213,68 +196,61 @@ BEGIN {
             "method"        => "form"
         },
         {
-            "args"          => [],
-            "expect_scalar" => "<frame />",
-            "method"        => "frame"
-        },
-        {
-            "expect_list" =>
-              [ "<frameset>one</frameset>", "<frameset>two</frameset>" ],
+            "expect_list" => [
+                "<frameset>one</frameset>", "<frameset>two</frameset>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<frameset>one</frameset><frameset>two</frameset>",
             "method" => "frameset"
         },
         {
-            "expect_list"   => [ "<h1>one</h1>", "<h1>two</h1>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h1>one</h1>", "<h1>two</h1>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h1>one</h1><h1>two</h1>",
             "method"        => "h1"
         },
         {
-            "expect_list"   => [ "<h2>one</h2>", "<h2>two</h2>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h2>one</h2>", "<h2>two</h2>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h2>one</h2><h2>two</h2>",
             "method"        => "h2"
         },
         {
-            "expect_list"   => [ "<h3>one</h3>", "<h3>two</h3>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h3>one</h3>", "<h3>two</h3>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h3>one</h3><h3>two</h3>",
             "method"        => "h3"
         },
         {
-            "expect_list"   => [ "<h4>one</h4>", "<h4>two</h4>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h4>one</h4>", "<h4>two</h4>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h4>one</h4><h4>two</h4>",
             "method"        => "h4"
         },
         {
-            "expect_list"   => [ "<h5>one</h5>", "<h5>two</h5>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h5>one</h5>", "<h5>two</h5>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h5>one</h5><h5>two</h5>",
             "method"        => "h5"
         },
         {
-            "expect_list"   => [ "<h6>one</h6>", "<h6>two</h6>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<h6>one</h6>", "<h6>two</h6>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<h6>one</h6><h6>two</h6>",
             "method"        => "h6"
         },
         {
-            "expect_list" => [ "<head>one</head>\n", "<head>two</head>\n" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<head>one</head>\n", "<head>two</head>\n" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<head>one</head>\n<head>two</head>\n",
             "method"        => "head"
         },
         {
-            "args"          => [],
-            "expect_scalar" => "<hr />",
-            "method"        => "hr"
-        },
-        {
-            "expect_list" => [ "<html>one</html>\n", "<html>two</html>\n" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<html>one</html>\n", "<html>two</html>\n" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<html>one</html>\n<html>two</html>\n",
             "method"        => "html"
         },
@@ -285,22 +261,12 @@ BEGIN {
             "method"        => "i"
         },
         {
-            "expect_list" => [ "<iframe>one</iframe>", "<iframe>two</iframe>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<iframe>one</iframe><iframe>two</iframe>",
-            "method"        => "iframe"
-        },
-        {
-            # This is correct according to our hash merging rules
-            "args" => [ { src => 'logo.png' }, { src => 'header.png' } ],
-            "expect_list"   => ['<img src="header.png" />'],
-            "expect_scalar" => '<img src="header.png" />',
-            "method"        => "img"
-        },
-        {
-            "args" => [ { type => 'text' }, { name => 'widget' } ],
-            "expect_scalar" => "<input name=\"widget\" type=\"text\" />",
-            "method"        => "input"
+            "expect_list" =>
+              [ "<iframe>one</iframe>", "<iframe>two</iframe>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<iframe>one</iframe><iframe>two</iframe>",
+            "method" => "iframe"
         },
         {
             "expect_list" => [ "<ins>one</ins>", "<ins>two</ins>" ],
@@ -321,20 +287,23 @@ BEGIN {
             "method"        => "kbd"
         },
         {
-            "expect_list" => [ "<label>one</label>", "<label>two</label>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<label>one</label>", "<label>two</label>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<label>one</label><label>two</label>",
             "method"        => "label"
         },
         {
-            "expect_list" => [ "<legend>one</legend>", "<legend>two</legend>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<legend>one</legend><legend>two</legend>",
-            "method"        => "legend"
+            "expect_list" =>
+              [ "<legend>one</legend>", "<legend>two</legend>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<legend>one</legend><legend>two</legend>",
+            "method" => "legend"
         },
         {
-            "expect_list"   => [ "<li>one</li>", "<li>two</li>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<li>one</li>", "<li>two</li>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<li>one</li><li>two</li>",
             "method"        => "li"
         },
@@ -351,35 +320,34 @@ BEGIN {
             "method"        => "map"
         },
         {
-            "args"          => [],
-            "expect_scalar" => "<meta />",
-            "method"        => "meta"
-        },
-        {
-            "expect_list" =>
-              [ "<noframes>one</noframes>", "<noframes>two</noframes>" ],
+            "expect_list" => [
+                "<noframes>one</noframes>", "<noframes>two</noframes>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<noframes>one</noframes><noframes>two</noframes>",
             "method" => "noframes"
         },
         {
-            "expect_list" =>
-              [ "<noscript>one</noscript>", "<noscript>two</noscript>" ],
+            "expect_list" => [
+                "<noscript>one</noscript>", "<noscript>two</noscript>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<noscript>one</noscript><noscript>two</noscript>",
             "method" => "noscript"
         },
         {
-            "expect_list" => [ "<object>one</object>", "<object>two</object>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<object>one</object><object>two</object>",
-            "method"        => "object"
+            "expect_list" =>
+              [ "<object>one</object>", "<object>two</object>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<object>one</object><object>two</object>",
+            "method" => "object"
         },
         {
-            "expect_list"   => [ "<ol>one</ol>", "<ol>two</ol>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<ol>one</ol>", "<ol>two</ol>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<ol>one</ol><ol>two</ol>",
             "method"        => "ol"
         },
@@ -389,29 +357,27 @@ BEGIN {
             "method"        => "open"
         },
         {
-            "expect_list" =>
-              [ "<optgroup>one</optgroup>", "<optgroup>two</optgroup>" ],
+            "expect_list" => [
+                "<optgroup>one</optgroup>", "<optgroup>two</optgroup>"
+            ],
             "args" => [ "one", "two" ],
             "expect_scalar" =>
               "<optgroup>one</optgroup><optgroup>two</optgroup>",
             "method" => "optgroup"
         },
         {
-            "expect_list" => [ "<option>one</option>", "<option>two</option>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<option>one</option><option>two</option>",
-            "method"        => "option"
+            "expect_list" =>
+              [ "<option>one</option>", "<option>two</option>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<option>one</option><option>two</option>",
+            "method" => "option"
         },
         {
-            "expect_list"   => [ "<p>one</p>\n", "<p>two</p>\n" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<p>one</p>\n", "<p>two</p>\n" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<p>one</p>\n<p>two</p>\n",
             "method"        => "p"
-        },
-        {
-            "args"          => [ { value => 1 } ],
-            "expect_scalar" => "<param value=\"1\" />",
-            "method"        => "param"
         },
         {
             "expect_list" => [ "<pre>one</pre>", "<pre>two</pre>" ],
@@ -437,20 +403,25 @@ BEGIN {
             "method"        => "samp"
         },
         {
-            "expect_list" => [ "<script>one</script>", "<script>two</script>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<script>one</script><script>two</script>",
-            "method"        => "script"
+            "expect_list" =>
+              [ "<script>one</script>", "<script>two</script>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<script>one</script><script>two</script>",
+            "method" => "script"
         },
         {
-            "expect_list" => [ "<select>one</select>", "<select>two</select>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<select>one</select><select>two</select>",
-            "method"        => "select"
+            "expect_list" =>
+              [ "<select>one</select>", "<select>two</select>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<select>one</select><select>two</select>",
+            "method" => "select"
         },
         {
-            "expect_list" => [ "<small>one</small>", "<small>two</small>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<small>one</small>", "<small>two</small>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<small>one</small><small>two</small>",
             "method"        => "small"
         },
@@ -461,14 +432,17 @@ BEGIN {
             "method"        => "span"
         },
         {
-            "expect_list" => [ "<strong>one</strong>", "<strong>two</strong>" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<strong>one</strong><strong>two</strong>",
-            "method"        => "strong"
+            "expect_list" =>
+              [ "<strong>one</strong>", "<strong>two</strong>" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<strong>one</strong><strong>two</strong>",
+            "method" => "strong"
         },
         {
-            "expect_list" => [ "<style>one</style>", "<style>two</style>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<style>one</style>", "<style>two</style>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<style>one</style><style>two</style>",
             "method"        => "style"
         },
@@ -485,10 +459,12 @@ BEGIN {
             "method"        => "sup"
         },
         {
-            "expect_list" => [ "<table>one</table>\n", "<table>two</table>\n" ],
-            "args"        => [ "one",                  "two" ],
-            "expect_scalar" => "<table>one</table>\n<table>two</table>\n",
-            "method"        => "table"
+            "expect_list" =>
+              [ "<table>one</table>\n", "<table>two</table>\n" ],
+            "args" => [ "one", "two" ],
+            "expect_scalar" =>
+              "<table>one</table>\n<table>two</table>\n",
+            "method" => "table"
         },
         {
             "expect_list"   => ["<one>two</one>"],
@@ -497,14 +473,15 @@ BEGIN {
             "method"        => "tag"
         },
         {
-            "expect_list" => [ "<tbody>one</tbody>", "<tbody>two</tbody>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<tbody>one</tbody>", "<tbody>two</tbody>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<tbody>one</tbody><tbody>two</tbody>",
             "method"        => "tbody"
         },
         {
-            "expect_list"   => [ "<td>one</td>", "<td>two</td>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<td>one</td>", "<td>two</td>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<td>one</td><td>two</td>",
             "method"        => "td"
         },
@@ -519,26 +496,29 @@ BEGIN {
             "method" => "textarea"
         },
         {
-            "expect_list" => [ "<tfoot>one</tfoot>", "<tfoot>two</tfoot>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<tfoot>one</tfoot>", "<tfoot>two</tfoot>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<tfoot>one</tfoot><tfoot>two</tfoot>",
             "method"        => "tfoot"
         },
         {
-            "expect_list"   => [ "<th>one</th>", "<th>two</th>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<th>one</th>", "<th>two</th>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<th>one</th><th>two</th>",
             "method"        => "th"
         },
         {
-            "expect_list" => [ "<thead>one</thead>", "<thead>two</thead>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<thead>one</thead>", "<thead>two</thead>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<thead>one</thead><thead>two</thead>",
             "method"        => "thead"
         },
         {
-            "expect_list" => [ "<title>one</title>", "<title>two</title>" ],
-            "args"        => [ "one",                "two" ],
+            "expect_list" =>
+              [ "<title>one</title>", "<title>two</title>" ],
+            "args" => [ "one", "two" ],
             "expect_scalar" => "<title>one</title><title>two</title>",
             "method"        => "title"
         },
@@ -549,14 +529,14 @@ BEGIN {
             "method"        => "tr"
         },
         {
-            "expect_list"   => [ "<tt>one</tt>", "<tt>two</tt>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<tt>one</tt>", "<tt>two</tt>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<tt>one</tt><tt>two</tt>",
             "method"        => "tt"
         },
         {
-            "expect_list"   => [ "<ul>one</ul>", "<ul>two</ul>" ],
-            "args"          => [ "one",          "two" ],
+            "expect_list" => [ "<ul>one</ul>", "<ul>two</ul>" ],
+            "args"        => [ "one",          "two" ],
             "expect_scalar" => "<ul>one</ul><ul>two</ul>",
             "method"        => "ul"
         },
@@ -580,7 +560,137 @@ BEGIN {
         }
     );
 
-    plan tests => @schedule * 3 * 4;
+    my @schedule_xml = (
+        @common_schedule,
+        {
+            "args" => [ { name => 'foo' } ],
+            "expect_scalar" => "<area name=\"foo\" />",
+            "expect_list"   => ["<area name=\"foo\" />"],
+            "method"        => "area"
+        },
+        {
+            "args" => [ { href => 'http://hexten.net/' } ],
+            "expect_scalar" => "<base href=\"http://hexten.net/\" />",
+            "expect_list"   => ["<base href=\"http://hexten.net/\" />"],
+            "method"        => "base"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<br />",
+            "method"        => "br"
+        },
+        {
+            "args"          => ['frob'],
+            "expect_scalar" => "<frob />",
+            "method"        => "closed"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<col />",
+            "method"        => "col"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<frame />",
+            "method"        => "frame"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<hr />",
+            "method"        => "hr"
+        },
+        {
+            # This is correct according to our hash merging rules
+            "args" =>
+              [ { src => 'logo.png' }, { src => 'header.png' } ],
+            "expect_list"   => ['<img src="header.png" />'],
+            "expect_scalar" => '<img src="header.png" />',
+            "method"        => "img"
+        },
+        {
+            "args" => [ { type => 'text' }, { name => 'widget' } ],
+            "expect_scalar" =>
+              "<input name=\"widget\" type=\"text\" />",
+            "method" => "input"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<meta />",
+            "method"        => "meta"
+        },
+        {
+            "args"          => [ { value => 1 } ],
+            "expect_scalar" => "<param value=\"1\" />",
+            "method"        => "param"
+        },
+    );
+
+    my @schedule_html = (
+        @common_schedule,
+        {
+            "args" => [ { name => 'foo' } ],
+            "expect_scalar" => "<area name=\"foo\">",
+            "expect_list"   => ["<area name=\"foo\">"],
+            "method"        => "area"
+        },
+        {
+            "args" => [ { href => 'http://hexten.net/' } ],
+            "expect_scalar" => "<base href=\"http://hexten.net/\">",
+            "expect_list"   => ["<base href=\"http://hexten.net/\">"],
+            "method"        => "base"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<br>",
+            "method"        => "br"
+        },
+        {
+            "args"          => ['frob'],
+            "expect_scalar" => "<frob>",
+            "method"        => "closed"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<col>",
+            "method"        => "col"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<frame>",
+            "method"        => "frame"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<hr>",
+            "method"        => "hr"
+        },
+        {
+            # This is correct according to our hash merging rules
+            "args" =>
+              [ { src => 'logo.png' }, { src => 'header.png' } ],
+            "expect_list"   => ['<img src="header.png">'],
+            "expect_scalar" => '<img src="header.png">',
+            "method"        => "img"
+        },
+        {
+            "args" => [ { type => 'text' }, { name => 'widget' } ],
+            "expect_scalar" => "<input name=\"widget\" type=\"text\">",
+            "method"        => "input"
+        },
+        {
+            "args"          => [],
+            "expect_scalar" => "<meta>",
+            "method"        => "meta"
+        },
+        {
+            "args"          => [ { value => 1 } ],
+            "expect_scalar" => "<param value=\"1\">",
+            "method"        => "param"
+        },
+    );
+
+    plan tests => ( @schedule_xml + @schedule_html ) * 3 * 4;
+    @schedule{qw(xml html)} = ( \@schedule_xml, \@schedule_html );
 }
 
 sub apply_test {
@@ -590,19 +700,27 @@ sub apply_test {
     can_ok $h, $method;
 
     my $got = $h->$method( @{ $test->{args} } );
-    is_deeply $got, $test->{expect_scalar}, "$method: scalar result matches";
+    is_deeply $got, $test->{expect_scalar},
+      "$method: scalar result matches";
 
-    my $expect_list = $test->{expect_list} || [ $test->{expect_scalar} ];
+    my $expect_list = $test->{expect_list}
+      || [ $test->{expect_scalar} ];
     my @got = $h->$method( @{ $test->{args} } );
     is_deeply \@got, $expect_list, "$method: list result matches";
 }
 
-# Run the tests three times, forwards and backwards to make sure they
-# don't interfere with each other.
-{
-    my $h = HTML::Tiny->new;
-    apply_test( $h, $_ ) for @schedule, reverse @schedule, @schedule;
+for my $mode ( qw(xml html) ) {
+    my @schedule = @{ $schedule{$mode} };
+
+   # Run the tests three times, forwards and backwards to make sure they
+   # don't interfere with each other.
+    {
+        my $h = HTML::Tiny->new( mode => $mode );
+        apply_test( $h, $_ )
+          for @schedule, reverse @schedule, @schedule;
+    }
+
+    # And once again, this time with a fresh HTML::Tiny for each test
+    apply_test( HTML::Tiny->new( mode => $mode ), $_ ) for @schedule;
 }
 
-# And once again, this time with a fresh HTML::Tiny for each test
-apply_test( HTML::Tiny->new, $_ ) for @schedule;
