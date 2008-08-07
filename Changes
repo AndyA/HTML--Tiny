@@ -58,3 +58,10 @@ Revision history for HTML-Tiny
 
 1.01    2007-12-18
         url_decode now handles uppercase hex correctly.
+
+1.02    2008-08-07
+        Added support for strict HTML output. Fixes #34378. Thanks JUERD
+        and SIGZERO for the report and VRK for the patch that fixes it.
+
+1.03    2008-08-07
+        Forgot the Changelog for 1.02. Oops.
