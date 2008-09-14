@@ -467,19 +467,17 @@ is executed as a call to the named method with the specified args.
 
 sub stringify {
     my ( $self, $obj ) = @_;
-    if ( my $ref = ref $obj ) {
+    if ( ref $obj ) {
 
         # Flatten array refs...
-        if ( 'ARRAY' eq $ref ) {
+        if ( 'ARRAY' eq ref $obj ) {
             # Check for deferred method call specified as a scalar
             # ref...
             if ( @$obj && 'SCALAR' eq ref $obj->[0] ) {
                 my ( $method, @args ) = @$obj;
                 return join '', $self->$$method( @args );
             }
-            else {
-                return join '', map { $self->stringify( $_ ) } @$obj;
-            }
+            return join '', map { $self->stringify( $_ ) } @$obj;
         }
 
         # ...stringify objects...
