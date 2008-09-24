@@ -10,14 +10,14 @@ my $h = HTML::Tiny->new;
 
 # Output a simple HTML page
 print $h->table(
-    [
-        $h->tr(
-            [ $h->th( 'Name', 'Score', 'Position' ) ],
-            [ $h->td( 'Therese',  90, 1 ) ],
-            [ $h->td( 'Chrissie', 85, 2 ) ],
-            [ $h->td( 'Andy',     50, 3 ) ]
-        )
-    ]
+  [
+    $h->tr(
+      [ $h->th( 'Name', 'Score', 'Position' ) ],
+      [ $h->td( 'Therese',  90, 1 ) ],
+      [ $h->td( 'Chrissie', 85, 2 ) ],
+      [ $h->td( 'Andy',     50, 3 ) ]
+    )
+  ]
 );
 
 # Outputs

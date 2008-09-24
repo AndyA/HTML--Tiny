@@ -8,10 +8,10 @@ use vars qw/@ISA/;
 use HTML::Tiny;
 
 sub validate_tag {
-    my $self = shift;
-    my ( $closed, $name, $attr ) = @_;
+  my $self = shift;
+  my ( $closed, $name, $attr ) = @_;
 
-    push @{ $self->{valid_args} }, [ $closed, $name, $attr ];
+  push @{ $self->{valid_args} }, [ $closed, $name, $attr ];
 }
 
 sub get_validation { shift->{valid_args} }
@@ -22,12 +22,12 @@ ok my $h = My::HTML::Tiny->new, 'Created OK';
 isa_ok $h, 'HTML::Tiny';
 
 is $h->tag( 'p', { class => 'small' }, 'a', { class => undef }, 'b' ),
-  '<p class="small">a</p><p>b</p>', 'change attr OK';
+ '<p class="small">a</p><p>b</p>', 'change attr OK';
 
 my $got  = $h->get_validation;
 my $want = [
-    [ 0, 'p', { 'class' => 'small' } ],
-    [ 0, 'p', { 'class' => undef } ]
+  [ 0, 'p', { 'class' => 'small' } ],
+  [ 0, 'p', { 'class' => undef } ]
 ];
 
 is_deeply $got, $want, 'validation hook called OK';

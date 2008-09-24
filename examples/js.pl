@@ -9,14 +9,14 @@ $| = 1;
 my $h = HTML::Tiny->new;
 
 my $some_perl_data = {
-    score   => 45,
-    name    => 'Fred',
-    history => [ 32, 37, 41, 45 ]
+  score   => 45,
+  name    => 'Fred',
+  history => [ 32, 37, 41, 45 ]
 };
 
 # Transfer value to Javascript
 print $h->script( { type => 'text/javascript' },
-    "\nvar someVar = " . $h->json_encode( $some_perl_data ) . ";\n " );
+  "\nvar someVar = " . $h->json_encode( $some_perl_data ) . ";\n " );
 
 # Prints
 # <script type="text/javascript">
