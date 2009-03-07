@@ -9,12 +9,12 @@ HTML::Tiny - Lightweight, dependency free HTML/XML generation
 
 =head1 VERSION
 
-This document describes HTML::Tiny version 1.04
+This document describes HTML::Tiny version 1.05
 
 =cut
 
 use vars qw/$VERSION/;
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 BEGIN {
 
