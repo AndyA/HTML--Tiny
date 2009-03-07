@@ -294,12 +294,6 @@ BEGIN {
       "method"        => "li"
     },
     {
-      "expect_list" => [ "<link>one</link>", "<link>two</link>" ],
-      "args"        => [ "one",              "two" ],
-      "expect_scalar" => "<link>one</link><link>two</link>",
-      "method"        => "link"
-    },
-    {
       "expect_list" => [ "<map>one</map>", "<map>two</map>" ],
       "args"        => [ "one",            "two" ],
       "expect_scalar" => "<map>one</map><map>two</map>",
@@ -583,6 +577,11 @@ BEGIN {
       "method"        => "input"
     },
     {
+      "args" => [ { href => 'http://foo.net/' } ],
+      "expect_scalar" =>  '<link href="http://foo.net/" />' ,
+      "method"        => "link"
+    },
+    {
       "args"          => [],
       "expect_scalar" => "<meta />",
       "method"        => "meta"
@@ -644,6 +643,11 @@ BEGIN {
       "args" => [ { type => 'text' }, { name => 'widget' } ],
       "expect_scalar" => "<input name=\"widget\" type=\"text\">",
       "method"        => "input"
+    },
+    {
+      "args" => [ { href => 'http://foo.net/' } ],
+      "expect_scalar" =>  '<link href="http://foo.net/">' ,
+      "method"        => "link"
     },
     {
       "args"          => [],

@@ -35,7 +35,7 @@ BEGIN {
 
 # Tags that are closed (<br /> versus <br></br>)
 my @DEFAULT_CLOSED
- = qw( area base br col frame hr img input meta param );
+ = qw( area base br col frame hr img input link meta param );
 
 # Tags that get a trailing newline
 my @DEFAULT_NEWLINE = qw( html head body div p tr table );

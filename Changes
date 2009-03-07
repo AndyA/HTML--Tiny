@@ -65,3 +65,7 @@ Revision history for HTML-Tiny
 
 1.03    2008-08-07
         Forgot the Changelog for 1.02. Oops.
+
+1.04    2009-03-07
+        Make link default to being closed. See #40990.
+
