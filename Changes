@@ -69,3 +69,6 @@ Revision history for HTML-Tiny
 1.04    2009-03-07
         Make link default to being closed. See #40990.
 
+1.05    2009-03-08
+        Add support for TO_JSON in json_encode.
+

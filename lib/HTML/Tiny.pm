@@ -665,6 +665,32 @@ sub _tag {
    x18  x19  x1a  e    x1c  x1d  x1e  x1f
   );
 
+  sub _json_encode_ref {
+    my ( $self, $seen, $obj ) = @_;
+    my $type = ref $obj;
+    if ( 'HASH' eq $type ) {
+      return '{' . join(
+        ',',
+        map {
+             $self->_json_encode( $seen, $_ ) . ':'
+           . $self->_json_encode( $seen, $obj->{$_} )
+         } sort keys %$obj
+      ) . '}';
+    }
+    elsif ( 'ARRAY' eq $type ) {
+      return
+         '['
+       . join( ',', map { $self->_json_encode( $seen, $_ ) } @$obj )
+       . ']';
+    }
+    elsif ( UNIVERSAL::can( $obj, 'can' ) && $obj->can( 'TO_JSON' ) ) {
+      return $self->_json_encode( $seen, $obj->TO_JSON );
+    }
+    else {
+      croak "Can't json_encode a $type";
+    }
+  }
+
   # Minimal JSON encoder. Provided here for completeness - it's useful
   # when generating JS.
   sub _json_encode {
@@ -675,28 +701,9 @@ sub _tag {
     if ( my $type = ref $obj ) {
       croak "json_encode can't handle self referential structures"
        if $seen->{$obj}++;
-      my $rep = ( 'HASH' eq $type )
-       ? (
-        '{' . join(
-          ',',
-          map {
-               $self->_json_encode( $seen, $_ ) . ':'
-             . $self->_json_encode( $seen, $obj->{$_} )
-           } sort keys %$obj
-         )
-         . '}'
-       )
-       : ( 'ARRAY' eq $type ) ? (
-        '['
-         . join(
-          ',',
-          map { $self->_json_encode( $seen, $_ ) } @$obj
-         )
-         . ']'
-       )
-       : undef;
+      my $rep = $self->_json_encode_ref( $seen, $obj );
       delete $seen->{$obj};
-      return $rep if defined $rep;
+      return $rep;
     }
 
     return $obj if $obj =~ /^-?\d+(?:[.]\d+)?$/;
@@ -737,6 +744,11 @@ generating ad-hoc Javascript. For example
   # <script type="text/javascript">
   # var someVar = {"history":[32,37,41,45],"name":"Fred","score":45};
   # </script>
+
+If you attempt to json encode a blessed object C<json_encode> will look
+for a C<TO_JSON> method and, if found, use its return value as the
+structure to be converted in place of the object. An attempt to encode a
+blessed object that does not implement C<TO_JSON> will fail.
 
 =cut
 

@@ -60,6 +60,7 @@ sub common_checks {
 package T::Obj;
 sub new { bless {}, shift }
 sub as_string { 'an object' }
+sub TO_JSON   { 'a json object' }
 
 package T::Obj2;
 sub new { bless {}, shift }
@@ -124,8 +125,8 @@ is $h->json_encode( { a => 1, b => 2 } ), '{"a":1,"b":2}',
  'json simple hash OK';
 is $h->json_encode( { ar => [ 1, 2, 3, { a => 1, b => 2 } ] } ),
  '{"ar":[1,2,3,{"a":1,"b":2}]}', 'json complex OK';
-is $h->json_encode( { obj => $obj } ), '{"obj":"an object"}',
- 'json stringification OK';
+is $h->json_encode( { obj => $obj } ), '{"obj":"a json object"}',
+ 'TO_JSON used OK';
 is $h->json_encode( undef ), 'null', 'json null OK';
 is $h->json_encode( [undef] ), '[null]', 'json null in array OK';
 
